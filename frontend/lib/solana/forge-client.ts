@@ -224,3 +224,19 @@ export function buildStakeIx(params: {
 export function settlementErrorName(code: number): string | null {
   return SETTLEMENT_ERRORS[code] ?? null;
 }
+
+/** Extract an Anchor custom-error code from a simulation/transaction err object,
+ * e.g. `{ InstructionError: [0, { Custom: 6000 }] }` → `6000`. */
+export function customErrorCode(err: unknown): number | null {
+  const instructionError = (err as { InstructionError?: [number, unknown] })
+    ?.InstructionError;
+  if (
+    Array.isArray(instructionError) &&
+    instructionError[1] &&
+    typeof instructionError[1] === "object" &&
+    "Custom" in instructionError[1]
+  ) {
+    return (instructionError[1] as { Custom: number }).Custom;
+  }
+  return null;
+}

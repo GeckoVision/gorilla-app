@@ -13,12 +13,15 @@ import {
   type PositionAccount,
 } from "./forge-client";
 
+// The `conn` parameter is injectable so every call can be unit-tested with a
+// light fake transport; in the app it defaults to the pooled proxy connection.
+
 // ── single account ─────────────────────────────────────────────────────────────
 export async function fetchMarket(
   address: string,
   mode: DataMode = "devnet",
+  conn: Connection = getConnection(mode),
 ): Promise<MarketAccount | null> {
-  const conn = getConnection(mode);
   const info = await conn.getAccountInfo(new PublicKey(address));
   if (!info) return null;
   return decodeMarket(address, info.data);
@@ -27,15 +30,15 @@ export async function fetchMarket(
 // ── all markets the program owns ─────────────────────────────────────────────────
 /**
  * All `Market` accounts under the program (via `getProgramAccounts`, filtered by
- * byte size so no account discriminator is needed). Falls back to fetching the
- * curated featured markets individually if the bulk scan is unavailable, and
- * always guarantees the featured markets are present.
+ * byte size so no account discriminator is needed). If the bulk scan is
+ * unavailable — public devnet 429s these heavily — it degrades to fetching the
+ * curated featured markets individually, and always guarantees they are present.
  */
 export async function fetchMarkets(
   mode: DataMode = "devnet",
+  conn: Connection = getConnection(mode),
 ): Promise<MarketAccount[]> {
   const config = getNetworkConfig(mode);
-  const conn = getConnection(mode);
   const byAddress = new Map<string, MarketAccount>();
 
   try {
@@ -50,13 +53,14 @@ export async function fetchMarkets(
       }
     }
   } catch {
-    // getProgramAccounts unavailable (some public RPCs cap it) — featured fallback below.
+    // getProgramAccounts unavailable / rate-limited — featured fallback below.
   }
 
   // Guarantee the curated markets are present even if the bulk scan missed/failed.
+  // Sequential (not a burst) so the fallback itself doesn't trip rate limits.
   for (const addr of config.featuredMarkets) {
     if (!byAddress.has(addr)) {
-      const m = await fetchMarket(addr, mode).catch(() => null);
+      const m = await fetchMarket(addr, mode, conn).catch(() => null);
       if (m) byAddress.set(addr, m);
     }
   }
@@ -72,9 +76,9 @@ export async function fetchMarkets(
 export async function fetchPositions(
   marketAddress: string,
   mode: DataMode = "devnet",
+  conn: Connection = getConnection(mode),
 ): Promise<PositionAccount[]> {
   const config = getNetworkConfig(mode);
-  const conn = getConnection(mode);
   try {
     const accounts = await conn.getProgramAccounts(config.forgeProgramId, {
       filters: [
@@ -111,7 +115,7 @@ export interface MarketTx {
   err: boolean;
 }
 
-function classifyByDiscriminator(data: Uint8Array): MarketTxKind {
+export function classifyByDiscriminator(data: Uint8Array): MarketTxKind {
   const head = Array.from(data.subarray(0, 8));
   for (const [name, disc] of Object.entries(DISCRIMINATORS)) {
     if (disc.every((b, i) => b === head[i])) return name as MarketTxKind;
@@ -122,14 +126,15 @@ function classifyByDiscriminator(data: Uint8Array): MarketTxKind {
 /**
  * The market's on-chain lifecycle, newest-first, each classified by matching the
  * `forge_markets` instruction's 8-byte discriminator. Best-effort: any signature
- * we can't fetch/parse is labelled "other" rather than dropped.
+ * we can't fetch/parse is labelled "other" rather than dropped, and a failed
+ * signatures lookup degrades to an empty list rather than throwing.
  */
 export async function fetchMarketTransactions(
   marketAddress: string,
   config: NetworkConfig,
-  limit = 12,
+  limit = 10,
+  conn: Connection = getConnection(config.mode),
 ): Promise<MarketTx[]> {
-  const conn = getConnection(config.mode);
   const market = new PublicKey(marketAddress);
   let sigs;
   try {

@@ -44,7 +44,7 @@ export function SettlementView() {
 
   useEffect(() => {
     let alive = true;
-    fetchMarketTransactions(selected, config, 12)
+    fetchMarketTransactions(selected, config, 10)
       .then((t) => alive && setTxState({ address: selected, txs: t }))
       .catch(() => alive && setTxState({ address: selected, txs: [] }));
     return () => {

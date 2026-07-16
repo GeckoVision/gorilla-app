@@ -23,8 +23,10 @@ import { ConnectButton } from "@/components/wallet/connect-button";
 import { ExplorerLink } from "@/components/shared/explorer-link";
 import { shortAddress } from "@/lib/format";
 import type { ExplorerCluster } from "@/lib/solana/config";
+import { confirmSignature } from "@/lib/solana/confirm";
 import {
   buildStakeIx,
+  customErrorCode,
   DISCRIMINATORS,
   settlementErrorName,
   toLamports,
@@ -46,14 +48,6 @@ type Phase =
 
 function discHex(name: keyof typeof DISCRIMINATORS): string {
   return DISCRIMINATORS[name].map((b) => b.toString(16).padStart(2, "0")).join(" ");
-}
-
-function customErrorCode(err: unknown): number | null {
-  const ie = (err as { InstructionError?: [number, unknown] })?.InstructionError;
-  if (Array.isArray(ie) && ie[1] && typeof ie[1] === "object" && "Custom" in ie[1]) {
-    return (ie[1] as { Custom: number }).Custom;
-  }
-  return null;
 }
 
 function AccountRow({
@@ -169,14 +163,23 @@ export function PlaceBetPanel({
     try {
       const tx = await buildVersionedTx(built.instruction);
       const signature = await sendTransaction(tx, connection);
-      const latest = await connection.getLatestBlockhash("confirmed");
-      await connection.confirmTransaction(
-        { signature, ...latest },
-        "confirmed",
-      );
       setSig(signature);
+      // Poll over HTTP (the proxy connection has no ws endpoint for a
+      // subscription-based confirmTransaction).
+      const outcome = await confirmSignature(connection, signature, {
+        timeoutMs: 30_000,
+      });
+      if (outcome === "failed") {
+        setPhase("send-err");
+        setMessage("Transaction reverted on-chain.");
+        return;
+      }
       setPhase("sent");
-      setMessage("Bet placed on-chain.");
+      setMessage(
+        outcome === "timeout"
+          ? "Bet submitted — confirmation is taking longer than usual."
+          : `Bet placed on-chain (${outcome}).`,
+      );
     } catch (e) {
       setPhase("send-err");
       setMessage(e instanceof Error ? e.message : String(e));
