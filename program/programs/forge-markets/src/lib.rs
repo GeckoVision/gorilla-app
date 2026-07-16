@@ -1,0 +1,94 @@
+//! forge-markets — a trustless prediction escrow over TxODDS fixture stats.
+//! Anchor 1.0, DEVNET-ONLY.
+//!
+//! ── The trustless claim ──────────────────────────────────────────────────────
+//! The program NEVER decides who wins. `settle` CPIs into TxODDS's on-chain
+//! `txoracle::validate_stat` (devnet `6pW64gN1s2uqjHkn1unFeEjAwJkPGHoppGvS715wyP2J`),
+//! passing the market's stored predicate + a caller-supplied 3-stage Merkle proof.
+//! The oracle proves the stat against ITS OWN on-chain root and evaluates the
+//! predicate; this program only records the outcome the oracle certifies. A
+//! tampered proof makes the CPI fail, which reverts `settle` — that revert is the
+//! whole guarantee.
+//!
+//! ── Instructions ─────────────────────────────────────────────────────────────
+//!   create_market(fixture_id, stat_key, predicate) — open a two-sided escrow
+//!   stake(side, amount)                            — back YES/NO with SOL
+//!   settle(ts, summary, proofs.., stat_a, ..)      — CPI validate_stat → outcome
+//!   claim()                                        — winning side withdraws pro-rata
+//!
+//! Both YES and NO settle through this single `settle`: the oracle returns
+//! `Ok(true|false)` and the program records the winner from that bool (a false
+//! predicate is `Ok(false)` → NO, not a revert). No separate `settle_no` exists.
+//!
+//! ── Flagged as founder-gated / out of Phase A ────────────────────────────────
+//!   * devnet deploy (keypair + SOL);
+//!   * a real txoracle Merkle fixture + confirming the LIVE oracle's `Ok(bool)`
+//!     return-data encoding (the mollusk suite uses a program double that models
+//!     it — see programs/mock-txoracle + the settlement test crate header).
+
+// Anchor macros emit `cfg(target_os = "solana")`, unknown to host cargo. Declare
+// it expected so host `cargo check`/`test` is warning-clean.
+#![allow(unexpected_cfgs)]
+
+use anchor_lang::prelude::*;
+
+pub mod errors;
+pub mod instructions;
+pub mod interface;
+pub mod state;
+pub mod txoracle_cpi;
+
+use instructions::*;
+use state::Side;
+use txoracle_cpi::{BinaryExpression, ProofNode, ScoresBatchSummary, StatTerm, TraderPredicate};
+
+declare_id!("7Pvo6SEh1zBa1Euvj5QQ4td9GpfsQosTpxhqwWtWUFt6");
+
+#[program]
+pub mod forge_markets {
+    use super::*;
+
+    /// Open a two-sided market over `(fixture_id, stat_key)` with a YES predicate.
+    pub fn create_market(
+        ctx: Context<CreateMarket>,
+        fixture_id: i64,
+        stat_key: u32,
+        predicate: TraderPredicate,
+    ) -> Result<()> {
+        instructions::create_market::create_market_handler(ctx, fixture_id, stat_key, predicate)
+    }
+
+    /// Stake `amount` lamports on `side`.
+    pub fn stake(ctx: Context<Stake>, side: Side, amount: u64) -> Result<()> {
+        instructions::stake::stake_handler(ctx, side, amount)
+    }
+
+    /// Settle the market by CPI-ing `txoracle::validate_stat`. Reverts on a bad proof.
+    #[allow(clippy::too_many_arguments)]
+    pub fn settle(
+        ctx: Context<Settle>,
+        ts: i64,
+        fixture_summary: ScoresBatchSummary,
+        fixture_proof: Vec<ProofNode>,
+        main_tree_proof: Vec<ProofNode>,
+        stat_a: StatTerm,
+        stat_b: Option<StatTerm>,
+        op: Option<BinaryExpression>,
+    ) -> Result<()> {
+        instructions::settle::settle_handler(
+            ctx,
+            ts,
+            fixture_summary,
+            fixture_proof,
+            main_tree_proof,
+            stat_a,
+            stat_b,
+            op,
+        )
+    }
+
+    /// Withdraw a winning position's pro-rata share of the pot.
+    pub fn claim(ctx: Context<Claim>) -> Result<()> {
+        instructions::claim::claim_handler(ctx)
+    }
+}

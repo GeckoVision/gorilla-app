@@ -1,0 +1,37 @@
+[toolchain]
+# Pinned to 1.0.2 to match `anchor-lang = "1.0.2"` in the member crates so the
+# whole Cargo workspace resolves on a single Solana 3.x crate tree.
+anchor_version = "1.0.2"
+
+[features]
+resolution = true
+skip-lint = false
+
+# `anchor build` IDL-builds every crate in `[workspace] members`. Only forge-markets
+# is an Anchor deploy target. mock-txoracle is a Mollusk-only TEST DOUBLE loaded AT
+# the real txoracle id (`6pW64gN1s2uqjHkn1unFeEjAwJkPGHoppGvS715wyP2J`) — we do not
+# own that keypair, so it is intentionally NOT listed here (no devnet deploy). It is
+# built with `cargo build-sbf` and loaded into a local validator via `--bpf-program`
+# for the Path (c) fallback demo. See programs/mock-txoracle/src/lib.rs.
+[workspace]
+members = ["programs/forge-markets"]
+
+[programs.localnet]
+forge_markets = "7Pvo6SEh1zBa1Euvj5QQ4td9GpfsQosTpxhqwWtWUFt6"
+
+[programs.devnet]
+forge_markets = "7Pvo6SEh1zBa1Euvj5QQ4td9GpfsQosTpxhqwWtWUFt6"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "devnet"
+# Throwaway devnet deploy/upgrade authority + fee payer (gitignored, regenerate if lost).
+wallet = ".deploy-keys/deploy-authority.json"
+
+[scripts]
+# The trust-critical suite is Mollusk (in-process SVM), run on the HOST target — not
+# a localnet validator. Run it directly:
+#   SBF_OUT_DIR="$(pwd)/target/deploy" cargo test -p forge-markets-tests
+test = "cargo test -p forge-markets-tests"

@@ -1,0 +1,28 @@
+[package]
+name = "forge-markets-tests"
+version = "0.1.0"
+edition = { workspace = true }
+license = { workspace = true }
+publish = false
+
+# Host-target only: Mollusk loads the compiled forge_markets + mock_txoracle
+# `.so`s and drives them in-process. NOT a Solana program.
+#
+# Same stack choice as the receipt/firewall suites (Mollusk 0.13 + solana-sdk 3),
+# to stay on one Solana 3.x crate tree. We build Anchor's 8-byte discriminators +
+# Borsh args by hand (borsh 1.x), so this crate depends on NO anchor crates.
+[lib]
+name = "forge_markets_tests"
+path = "src/lib.rs"
+
+[dependencies]
+mollusk-svm = "0.13"
+solana-sdk = "3"
+sha2 = "0.10"
+borsh = "1"
+
+[dev-dependencies]
+mollusk-svm = "0.13"
+solana-sdk = "3"
+sha2 = "0.10"
+borsh = "1"

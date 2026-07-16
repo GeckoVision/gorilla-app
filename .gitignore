@@ -1,0 +1,51 @@
+# ── Throwaway devnet keypairs — NEVER commit a key ───────────────────────────
+# The program-identity keypair + the deploy/upgrade authority live here. declare_id!
+# is the frozen on-chain identity; if these are lost, regenerate (see program/README).
+program/.deploy-keys/
+**/*-keypair.json
+*-keypair.json
+**/keys/
+
+# ── Anchor / Solana build artifacts ──────────────────────────────────────────
+.anchor/
+target/
+**/target/
+**/*.rs.bk
+test-ledger/
+.surfpool/
+
+# Compiled SBF program binaries (rebuilt via `cargo build-sbf` / `anchor build`)
+*.so
+
+# ── Python (backend/, added by other lanes) ──────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# ── Secrets ──────────────────────────────────────────────────────────────────
+.env
+!.env.example
+
+# ── JS / Anchor test deps ────────────────────────────────────────────────────
+node_modules/
+.yarn/
+yarn-error.log
+
+# ── Editor / OS ──────────────────────────────────────────────────────────────
+.DS_Store
+*.swp
+
+# Internal design/business docs + dev probes — not part of the public submission
+/ARCHITECTURE.md
+/AgentForge_Markets_Business_Model_and_PRD.md
+backend/scripts/probe_privy.py
+backend/scripts/probe_txoracle.py
+**/.venv/
+.deploy-keys/
+**/.deploy-keys/
+backend/scripts/keys/
+**/.ruff_cache/
+**/.env
