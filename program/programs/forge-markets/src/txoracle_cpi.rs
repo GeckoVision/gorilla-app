@@ -23,8 +23,18 @@ use anchor_lang::solana_program::program::{get_return_data, invoke};
 
 use crate::errors::SettlementError;
 
-/// TxODDS `txoracle` program id (devnet). The CPI target.
+/// TxODDS `txoracle` program id — the CPI target the `settle` context pins by address.
+///
+/// Devnet by default; the `mainnet-oracle` feature flips it to the TxODDS mainnet
+/// deployment (`9ExbZjAapQww1vfcisDmrngPinHTEfpjYRWMunJgcKaA`, verified live +
+/// actively publishing daily roots — same `validate_stat` interface, confirmed by a
+/// Surfpool mainnet-fork profile that CPIs it and returns `Ok(true)`). A mainnet deploy
+/// MUST build with this feature, else `settle` rejects the mainnet oracle with
+/// `WrongOracleProgram`. The two ids are the ONLY cluster-specific bytes in the program.
+#[cfg(not(feature = "mainnet-oracle"))]
 pub const TXORACLE_PROGRAM_ID: Pubkey = pubkey!("6pW64gN1s2uqjHkn1unFeEjAwJkPGHoppGvS715wyP2J");
+#[cfg(feature = "mainnet-oracle")]
+pub const TXORACLE_PROGRAM_ID: Pubkey = pubkey!("9ExbZjAapQww1vfcisDmrngPinHTEfpjYRWMunJgcKaA");
 
 /// Anchor discriminator for `txoracle::validate_stat` (from the IDL, verbatim).
 pub const VALIDATE_STAT_DISCRIMINATOR: [u8; 8] = [107, 197, 232, 90, 191, 136, 105, 185];

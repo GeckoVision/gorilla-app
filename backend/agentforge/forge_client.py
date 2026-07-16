@@ -23,6 +23,7 @@ The settle path carries the probe's hard-won fixes:
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
 from enum import IntEnum
 from pathlib import Path
@@ -35,7 +36,17 @@ from .decision import Side
 
 # ── program identities (frozen; verified deployed + executable on devnet) ────────
 FORGE_PROGRAM_ID = Pubkey.from_string("7Pvo6SEh1zBa1Euvj5QQ4td9GpfsQosTpxhqwWtWUFt6")
-TXORACLE_PROGRAM_ID = Pubkey.from_string("6pW64gN1s2uqjHkn1unFeEjAwJkPGHoppGvS715wyP2J")
+# txoracle CPI target — devnet by default. A mainnet settle build sets
+# AGENTFORGE_TXORACLE_ID to the TxODDS mainnet oracle
+# (9ExbZjAapQww1vfcisDmrngPinHTEfpjYRWMunJgcKaA — verified live + fed, its validate_stat
+# confirmed byte-compatible via a Surfpool mainnet-fork profile), which flips BOTH the CPI
+# target AND the daily_scores_roots PDA derivation so the SAME builder produces a
+# mainnet-correct settle. Devnet default keeps every existing test + the demo unchanged.
+DEVNET_TXORACLE_ID = "6pW64gN1s2uqjHkn1unFeEjAwJkPGHoppGvS715wyP2J"
+MAINNET_TXORACLE_ID = "9ExbZjAapQww1vfcisDmrngPinHTEfpjYRWMunJgcKaA"
+TXORACLE_PROGRAM_ID = Pubkey.from_string(
+    os.environ.get("AGENTFORGE_TXORACLE_ID", DEVNET_TXORACLE_ID)
+)
 SYSTEM_PROGRAM_ID = Pubkey.from_string("11111111111111111111111111111111")
 COMPUTE_BUDGET_ID = Pubkey.from_string("ComputeBudget111111111111111111111111111111")
 
@@ -199,6 +210,35 @@ def daily_scores_roots_pda(min_timestamp_ms: int) -> tuple[Pubkey, int, int]:
 def compute_unit_limit_ix(units: int = SETTLE_COMPUTE_UNITS) -> Instruction:
     """ComputeBudget ``SetComputeUnitLimit`` (variant 2) — u32 LE units, no accounts."""
     return Instruction(COMPUTE_BUDGET_ID, bytes([2]) + int(units).to_bytes(4, "little"), [])
+
+
+def compute_unit_price_ix(micro_lamports: int) -> Instruction:
+    """ComputeBudget ``SetComputeUnitPrice`` (variant 3) — u64 LE micro-lamports per CU, no
+    accounts. The priority fee it adds is ``ceil(cu_limit * micro_lamports / 1e6)`` lamports on
+    top of the 5000-per-signature base fee. Zero/omitted on devnet; a mainnet build sets a
+    non-zero price so a settle lands under fee-market load (a fork rehearsal has no mempool, so
+    the price is a builder concern the founder tunes at broadcast, not a simulation input)."""
+    if micro_lamports < 0:
+        raise ForgeError("priority-fee price must be non-negative")
+    return Instruction(
+        COMPUTE_BUDGET_ID, bytes([3]) + int(micro_lamports).to_bytes(8, "little"), []
+    )
+
+
+def with_priority_fee(tx: UnsignedTx, micro_lamports: int) -> UnsignedTx:
+    """Return ``tx`` with a ``SetComputeUnitPrice`` prelude prepended (priority fee), or ``tx``
+    unchanged when ``micro_lamports <= 0``. The price ix is a ComputeBudget prelude — already
+    inside the policy-gated wallet's allow-list tolerance (:data:`PRELUDE_PROGRAM_IDS`), so it
+    never widens what the wallet will sign. Program id + ``instruction_name`` (the allow-list
+    identity) are preserved. This is the ONE mainnet-param a devnet build omits; keeping it
+    opt-in leaves every devnet path byte-identical."""
+    if micro_lamports <= 0:
+        return tx
+    return UnsignedTx(
+        (compute_unit_price_ix(micro_lamports), *tx.instructions),
+        tx.program_id,
+        tx.instruction_name,
+    )
 
 
 # ── instruction builders (account order MUST match each #[derive(Accounts)]) ─────

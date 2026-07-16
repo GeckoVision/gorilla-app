@@ -9,14 +9,19 @@ Market decode. The live devnet leg (test_e2e_devnet) is the final smoke, not the
 from __future__ import annotations
 
 import hashlib
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 from solders.pubkey import Pubkey
 
 from agentforge.forge_client import (
     COMPUTE_BUDGET_ID,
+    DEVNET_TXORACLE_ID,
     DISCRIMINATORS,
     FORGE_PROGRAM_ID,
+    MAINNET_TXORACLE_ID,
     SYSTEM_PROGRAM_ID,
     TXORACLE_PROGRAM_ID,
     Comparison,
@@ -26,16 +31,19 @@ from agentforge.forge_client import (
     build_create_market_ix,
     build_settle_ixs,
     build_stake_ix,
+    compute_unit_price_ix,
     daily_scores_roots_pda,
     decode_market,
     encode_settle_args,
     load_recorded_proof,
     market_pda,
     position_pda,
+    settle_tx,
     side_index,
     to_lamports,
     vault_pda,
     winning_predicate,
+    with_priority_fee,
 )
 
 PROOF_PATH = (
@@ -295,3 +303,68 @@ def test_to_lamports_rounds_sol():
     assert to_lamports(0.01) == 10_000_000
     assert to_lamports(1.0) == 1_000_000_000
     assert to_lamports(0.005) == 5_000_000
+
+
+# ── mainnet params: priority fee (the one ComputeBudget field a devnet build omits) ──
+def test_compute_unit_price_ix_encodes_setcomputeunitprice():
+    ix = compute_unit_price_ix(1_500)
+    assert ix.program_id == COMPUTE_BUDGET_ID
+    assert ix.accounts == []
+    assert ix.data[0] == 3  # SetComputeUnitPrice variant
+    assert int.from_bytes(bytes(ix.data[1:9]), "little") == 1_500  # u64 LE micro-lamports/CU
+
+
+def test_with_priority_fee_is_noop_at_or_below_zero():
+    tx = settle_tx(FIXTURE_ID, STAT_KEY, PROOF)
+    assert with_priority_fee(tx, 0) is tx
+    assert with_priority_fee(tx, -5) is tx
+
+
+def test_with_priority_fee_prepends_price_and_preserves_allowlist_identity():
+    base = settle_tx(FIXTURE_ID, STAT_KEY, PROOF)  # [cu_limit, settle]
+    tx = with_priority_fee(base, 25_000)
+    # price prepended: [SetComputeUnitPrice, SetComputeUnitLimit, settle]
+    assert len(tx.instructions) == len(base.instructions) + 1
+    price = tx.instructions[0]
+    assert price.program_id == COMPUTE_BUDGET_ID and price.data[0] == 3
+    # the allow-list identity a wallet checks is unchanged, and still exactly ONE forge ix.
+    assert tx.program_id == FORGE_PROGRAM_ID and tx.instruction_name == "settle"
+    forge_ixs = [ix for ix in tx.instructions if ix.program_id == FORGE_PROGRAM_ID]
+    assert len(forge_ixs) == 1 and bytes(forge_ixs[0].data[:8]) == DISCRIMINATORS["settle"]
+    # both preludes are ComputeBudget (the only non-forge programs the wallet tolerates).
+    assert all(ix.program_id in (COMPUTE_BUDGET_ID, FORGE_PROGRAM_ID) for ix in tx.instructions)
+
+
+# ── mainnet params: the txoracle id is build-selectable (mirrors the program cargo feature) ──
+def test_txoracle_id_defaults_to_devnet():
+    """With no env override the builder targets the devnet oracle — every existing devnet path
+    and the Mollusk-tested program id are unchanged."""
+    assert str(TXORACLE_PROGRAM_ID) == DEVNET_TXORACLE_ID
+    assert MAINNET_TXORACLE_ID == "9ExbZjAapQww1vfcisDmrngPinHTEfpjYRWMunJgcKaA"
+
+
+def test_txoracle_id_env_override_flips_target_and_root_pda():
+    """A mainnet settle build sets AGENTFORGE_TXORACLE_ID; the SAME builder then targets the
+    mainnet oracle AND derives the mainnet daily-roots PDA (CdrF… — verified live on mainnet for
+    epoch-day 20638). Exercised in a subprocess so the module-level id resolution runs from a
+    clean import, without perturbing this process's devnet default."""
+    backend = Path(__file__).resolve().parent.parent
+    code = (
+        "from agentforge.forge_client import TXORACLE_PROGRAM_ID, MAINNET_TXORACLE_ID, "
+        "daily_scores_roots_pda\n"
+        "assert str(TXORACLE_PROGRAM_ID) == MAINNET_TXORACLE_ID, TXORACLE_PROGRAM_ID\n"
+        "pda, _bump, day = daily_scores_roots_pda(1783135501299)\n"
+        "print(pda, day)\n"
+    )
+    env = {
+        **os.environ,
+        "AGENTFORGE_TXORACLE_ID": "9ExbZjAapQww1vfcisDmrngPinHTEfpjYRWMunJgcKaA",
+        "PYTHONPATH": str(backend),
+    }
+    r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env)
+    assert r.returncode == 0, r.stderr
+    pda, day = r.stdout.split()
+    assert pda == "CdrFdcGqLpGxq3qDxcj4aNQT8jsUU2vBHd3JEEAQ55jd"  # live mainnet day-20638 roots PDA
+    assert day == "20638"
+    # this process is untouched — still devnet.
+    assert str(TXORACLE_PROGRAM_ID) == DEVNET_TXORACLE_ID

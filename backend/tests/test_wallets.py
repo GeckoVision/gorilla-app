@@ -17,12 +17,14 @@ from solders.pubkey import Pubkey
 from solders.transaction import Transaction
 
 from agentforge.forge_client import (
+    COMPUTE_BUDGET_ID,
     FORGE_PROGRAM_ID,
     SYSTEM_PROGRAM_ID,
     UnsignedTx,
     claim_tx,
     stake_tx,
     to_lamports,
+    with_priority_fee,
 )
 from agentforge.privy_http import (
     DEFAULT_PRIVY_WALLET_ADDRESS,
@@ -389,3 +391,42 @@ def test_test_sign_self_transfer_encodes_nonzero_lamports():
     tx = Transaction.from_bytes(base64.b64decode(body["params"]["transaction"]))
     ci = tx.message.instructions[0]
     assert int.from_bytes(bytes(ci.data)[4:12], "little") == 1234
+
+
+# ── mainnet params: fresh blockhash on broadcast + a priority-fee prelude signs cleanly ──
+def test_broadcast_uses_a_fresh_blockhash_not_the_simulation_default():
+    """The pre-send SIMULATION runs on Hash.default() (the RPC replaces the blockhash), but the
+    BROADCAST must carry the freshly fetched blockhash — else a mainnet send is 'blockhash not
+    found'. Assert the sent tx uses the RPC's latest and the sim used the default."""
+    fresh = Hash.from_string(str(Keypair().pubkey()))  # any valid, non-default 32-byte hash
+
+    class FreshRpc(FakeRpc):
+        def latest_blockhash(self) -> str:
+            return str(fresh)
+
+    rpc = FreshRpc()
+    w = LocalDevnetWallet(keypair=Keypair(), rpc=rpc)  # type: ignore[arg-type]
+    w.authorize(_chain_policy())
+    w.sign_within_policy(_stake_intent(w.pubkey))
+    sent = Transaction.from_bytes(base64.b64decode(rpc.sent[0]))
+    assert sent.message.recent_blockhash == fresh
+    assert sent.message.recent_blockhash != Hash.default()
+    simulated = Transaction.from_bytes(base64.b64decode(rpc.simulated[0]))
+    assert simulated.message.recent_blockhash == Hash.default()
+
+
+def test_priority_fee_prelude_still_signs_within_policy():
+    """A mainnet ComputeBudget priority-fee prelude must not trip the allow-list — the wallet
+    still signs a stake that carries it, and only the stake reaches forge_markets."""
+    rpc = FakeRpc()
+    w = LocalDevnetWallet(keypair=Keypair(), rpc=rpc)  # type: ignore[arg-type]
+    w.authorize(_chain_policy())
+    tx = with_priority_fee(
+        stake_tx(FIXTURE_ID, STAT_KEY, w.pubkey, "Yes", to_lamports(0.01)), 50_000
+    )
+    res = w.sign_within_policy(TxIntent("place-bet", 0.01, "stake + priority fee", unsigned_tx=tx))
+    assert res.ref.startswith("FAKESIG")
+    sent = Transaction.from_bytes(base64.b64decode(rpc.sent[0]))
+    assert len(sent.message.instructions) == 2  # [SetComputeUnitPrice, stake]
+    programs = {sent.message.account_keys[ci.program_id_index] for ci in sent.message.instructions}
+    assert programs == {COMPUTE_BUDGET_ID, FORGE_PROGRAM_ID}

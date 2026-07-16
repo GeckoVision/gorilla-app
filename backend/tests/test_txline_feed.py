@@ -14,7 +14,6 @@ from pathlib import Path
 import pytest
 
 import agentforge
-from agentforge import txline_feed
 from agentforge.detector import OddsSnapshot, SharpDetector
 from agentforge.txline_feed import (
     _ODDS_SNAPSHOT_OP,
@@ -216,5 +215,9 @@ def test_feed_package_is_fully_self_contained():
                 mods = [node.module.split(".")[0]]
             for mod in mods:
                 if mod not in allowed:
-                    offenders.append(f"{source.relative_to(package_dir)}:{node.lineno}: imports {mod!r}")
-    assert not offenders, "package must stay self-contained (stdlib + solders only):\n" + "\n".join(offenders)
+                    offenders.append(
+                        f"{source.relative_to(package_dir)}:{node.lineno}: imports {mod!r}"
+                    )
+    assert not offenders, "package must stay self-contained (stdlib + solders only):\n" + "\n".join(
+        offenders
+    )

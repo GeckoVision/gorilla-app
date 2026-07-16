@@ -12,6 +12,10 @@ name = "forge_markets"
 
 [features]
 default = []
+# Build the program pinned to the TxODDS MAINNET txoracle id instead of devnet.
+# Required for any mainnet deploy (see txoracle_cpi::TXORACLE_PROGRAM_ID). Off by
+# default so devnet builds + the Mollusk suite are unaffected.
+mainnet-oracle = []
 cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []

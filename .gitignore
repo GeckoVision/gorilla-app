@@ -10,6 +10,10 @@ program/.deploy-keys/
 .anchor/
 target/
 **/target/
+# Isolated target dir for the mainnet-oracle build (surfpool_rehearse.sh) — never collides
+# with target/ (the devnet build the Mollusk suite loads).
+target-mainnet/
+**/target-mainnet/
 **/*.rs.bk
 test-ledger/
 .surfpool/
