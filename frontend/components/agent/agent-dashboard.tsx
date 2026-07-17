@@ -221,7 +221,7 @@ export function AgentDashboard() {
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                 <div className="flex flex-col">
                   <span className="text-xs text-muted-foreground">Side</span>
-                  <span className="text-lg font-semibold text-primary">
+                  <span className="text-lg font-semibold text-yes">
                     {BET.side}
                   </span>
                 </div>

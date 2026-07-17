@@ -14,27 +14,22 @@ export function Logo({ className }: { className?: string }) {
         y="1"
         width="30"
         height="30"
-        rx="8"
-        fill="url(#lg-fill)"
-        stroke="oklch(0.83 0.185 156 / 0.5)"
+        rx="7"
+        fill="var(--secondary)"
+        stroke="var(--primary)"
+        strokeOpacity="0.45"
         strokeWidth="1"
       />
       <path
         d="M16 7 L16 13 M16 13 L10 19 M16 13 L22 19"
-        stroke="oklch(0.83 0.185 156)"
+        stroke="var(--primary)"
         strokeWidth="1.75"
         strokeLinecap="round"
       />
-      <circle cx="16" cy="7" r="2.4" fill="oklch(0.83 0.185 156)" />
-      <circle cx="10" cy="20" r="2.4" fill="oklch(0.64 0.2 285)" />
-      <circle cx="22" cy="20" r="2.4" fill="oklch(0.64 0.2 285)" />
-      <circle cx="16" cy="13" r="1.6" fill="oklch(0.97 0.005 250)" />
-      <defs>
-        <linearGradient id="lg-fill" x1="0" y1="0" x2="32" y2="32">
-          <stop stopColor="oklch(0.22 0.02 264)" />
-          <stop offset="1" stopColor="oklch(0.17 0.016 264)" />
-        </linearGradient>
-      </defs>
+      <circle cx="16" cy="7" r="2.4" fill="var(--primary)" />
+      <circle cx="10" cy="20" r="2.4" fill="var(--accent)" />
+      <circle cx="22" cy="20" r="2.4" fill="var(--accent)" />
+      <circle cx="16" cy="13" r="1.6" fill="var(--foreground)" />
     </svg>
   );
 }

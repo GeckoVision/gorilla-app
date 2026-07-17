@@ -58,67 +58,57 @@ export function SettlementView() {
   const settleTx = txs ? findSettleTx(txs) : null;
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* market selector */}
-      <div className="flex flex-wrap items-center gap-2">
-        {FEATURED_MARKETS.map((addr) => {
-          const m = featured.find((x) => x.address === addr);
-          const active = addr === selected;
-          return (
-            <button
-              key={addr}
-              onClick={() => setSelected(addr)}
-              className={cn(
-                "flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm transition-colors cursor-pointer",
-                active
-                  ? "border-primary/40 bg-primary/5"
-                  : "border-border/70 hover:bg-secondary",
-              )}
-            >
-              <span
+    <div className="flex flex-col">
+      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
+        {/* market selector */}
+        <div className="flex flex-wrap items-center gap-2">
+          {FEATURED_MARKETS.map((addr) => {
+            const m = featured.find((x) => x.address === addr);
+            const active = addr === selected;
+            return (
+              <button
+                key={addr}
+                onClick={() => setSelected(addr)}
                 className={cn(
-                  "size-2 rounded-full",
-                  active ? "bg-primary" : "bg-muted-foreground/40",
+                  "flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm transition-colors cursor-pointer",
+                  active
+                    ? "border-primary/40 bg-primary/5"
+                    : "border-border/70 hover:bg-secondary",
                 )}
-              />
-              <span className="font-medium">
-                {m ? `Fixture ${m.fixtureId}` : shortAddress(addr)}
-              </span>
-              {m && (
-                <span className="text-xs text-muted-foreground">
-                  {predicateLabel(m)}
+              >
+                <span
+                  className={cn(
+                    "size-2 rounded-full",
+                    active ? "bg-primary" : "bg-muted-foreground/40",
+                  )}
+                />
+                <span className="font-medium">
+                  {m ? `Fixture ${m.fixtureId}` : shortAddress(addr)}
                 </span>
-              )}
-            </button>
-          );
-        })}
-        {settleTx && (
-          <a
-            href={explorerTx(settleTx.signature, config.explorerCluster)}
-            target="_blank"
-            rel="noreferrer"
-            className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/15"
-          >
-            <ShieldCheck className="size-4" />
-            View settle transaction
-            <ExternalLink className="size-3.5" />
-          </a>
-        )}
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        {/* the centerpiece */}
-        <Card className="lg:col-span-2">
-          <CardContent>
-            <MerkleProofViewer
-              predicateLabel={market ? predicateLabel(market) : "stat #1 > 0"}
-              winner={market?.winner ?? "Yes"}
-            />
-          </CardContent>
-        </Card>
+                {m && (
+                  <span className="text-xs text-muted-foreground">
+                    {predicateLabel(m)}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+          {settleTx && (
+            <a
+              href={explorerTx(settleTx.signature, config.explorerCluster)}
+              target="_blank"
+              rel="noreferrer"
+              className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/15"
+            >
+              <ShieldCheck className="size-4" />
+              View settle transaction
+              <ExternalLink className="size-3.5" />
+            </a>
+          )}
+        </div>
 
         {/* live market + place a bet */}
-        <div className="flex flex-col gap-4">
+        <div className="mt-5 grid gap-4 lg:grid-cols-2">
           <Card>
             <CardContent>
               {market ? (
@@ -147,16 +137,29 @@ export function SettlementView() {
         </div>
       </div>
 
-      {/* lifecycle */}
-      <Card>
-        <CardContent>
-          <SettlementActivity
-            txs={txs}
-            loading={txLoading}
-            cluster={config.explorerCluster}
+      {/* the centerpiece — the page's single cream-inverted spotlight */}
+      <section className="surface-cream my-10 border-y border-border">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+          <p className="eyebrow mb-6 text-primary">The proof</p>
+          <MerkleProofViewer
+            predicateLabel={market ? predicateLabel(market) : "stat #1 > 0"}
+            winner={market?.winner ?? "Yes"}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </section>
+
+      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
+        {/* lifecycle */}
+        <Card>
+          <CardContent>
+            <SettlementActivity
+              txs={txs}
+              loading={txLoading}
+              cluster={config.explorerCluster}
+            />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

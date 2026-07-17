@@ -1,80 +1,92 @@
 @import "tailwindcss";
 
-/* Dark-only surface. `.dark` is mirrored so shadcn primitives that key off it
-   still resolve, but the app forces dark on <html>. */
+/* Dark-first. `.dark` is mirrored so shadcn primitives keying off it resolve;
+   the app forces dark on <html>. */
 @custom-variant dark (&:is(.dark *));
 
 /*
-  AgentForge Markets — "neon on ink" sports-betting palette.
-  Ink background (cool near-black), emerald = YES / verified / money,
-  electric indigo = the agent / compute, rose = NO, gold = the pot.
-  Not default shadcn slate — a chosen, considered set.
+  AgentForge Markets — stark-editorial, purple identity.
+  Cool near-black ink background, cool off-white text, one vivid VIOLET brand
+  accent (#8B5CF6). Verdict colors stay literal: green = YES/win, red = NO/loss,
+  ochre = the pot. A distant cousin of the source system, its own purple face.
 */
 :root {
-  --radius: 0.75rem;
+  /* base tokens */
+  --bg: hsl(224 41% 7%); /* #0B0F1A */
+  --surface: hsl(221 27% 12%); /* #161B26 */
+  --surface-2: hsl(221 22% 15%);
+  --border-cool: hsl(221 20% 18%);
+  --text-primary: hsl(220 20% 94%); /* ~#EDEEF3 */
+  --text-secondary: hsl(220 13% 67%);
+  --text-muted: hsl(220 10% 50%);
 
-  --background: oklch(0.155 0.014 264);
-  --foreground: oklch(0.97 0.005 250);
+  /* brand + verdict */
+  --brand: hsl(258 90% 66%); /* #8B5CF6 violet */
+  --brand-2: hsl(252 92% 78%); /* lighter lavender */
+  --verdict-yes: hsl(156 55% 48%);
+  --verdict-no: hsl(0 66% 60%);
+  --verdict-pot: hsl(42 65% 56%); /* #D6A949 ochre */
+  --cool-info: hsl(205 72% 63%);
 
-  --card: oklch(0.196 0.016 264);
-  --card-foreground: oklch(0.97 0.005 250);
+  --radius: 0.5rem;
 
-  --popover: oklch(0.178 0.016 264);
-  --popover-foreground: oklch(0.97 0.005 250);
+  /* shadcn-style aliases mapped onto the stark tokens */
+  --background: var(--bg);
+  --foreground: var(--text-primary);
+  --card: var(--surface);
+  --card-foreground: var(--text-primary);
+  --popover: hsl(221 28% 10%);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--brand);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--surface-2);
+  --muted-foreground: var(--text-secondary);
+  --accent: var(--brand-2);
+  --accent-foreground: hsl(224 41% 7%);
+  --destructive: var(--verdict-no);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: var(--border-cool);
+  --input: hsl(221 20% 22%);
+  --ring: var(--brand);
 
-  /* YES / verified / money */
-  --primary: oklch(0.83 0.185 156);
-  --primary-foreground: oklch(0.18 0.03 160);
+  /* app semantics */
+  --yes: var(--verdict-yes);
+  --no: var(--verdict-no);
+  --gold: var(--verdict-pot);
+  --info: var(--cool-info);
 
-  --secondary: oklch(0.255 0.02 264);
-  --secondary-foreground: oklch(0.97 0.005 250);
-
-  --muted: oklch(0.235 0.016 264);
-  --muted-foreground: oklch(0.68 0.02 262);
-
-  /* the agent / compute */
-  --accent: oklch(0.64 0.2 285);
-  --accent-foreground: oklch(0.98 0.005 285);
-
-  /* NO / refusal */
-  --destructive: oklch(0.64 0.21 18);
-  --destructive-foreground: oklch(0.98 0.01 20);
-
-  --border: oklch(1 0 0 / 9%);
-  --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.83 0.185 156);
-
-  /* app-specific semantics */
-  --yes: oklch(0.83 0.185 156);
-  --no: oklch(0.66 0.2 20);
-  --gold: oklch(0.83 0.15 84);
-  --info: oklch(0.7 0.13 235);
+  /* cream inversion (the single light band that spotlights the proof) */
+  --cream: hsl(45 33% 97%); /* #FAF9F5 */
+  --cream-ink: hsl(40 9% 12%);
+  --cream-muted: hsl(38 8% 40%);
 }
 
 .dark {
-  --background: oklch(0.155 0.014 264);
-  --foreground: oklch(0.97 0.005 250);
-  --card: oklch(0.196 0.016 264);
-  --card-foreground: oklch(0.97 0.005 250);
-  --popover: oklch(0.178 0.016 264);
-  --popover-foreground: oklch(0.97 0.005 250);
-  --primary: oklch(0.83 0.185 156);
-  --primary-foreground: oklch(0.18 0.03 160);
-  --secondary: oklch(0.255 0.02 264);
-  --secondary-foreground: oklch(0.97 0.005 250);
-  --muted: oklch(0.235 0.016 264);
-  --muted-foreground: oklch(0.68 0.02 262);
-  --accent: oklch(0.64 0.2 285);
-  --accent-foreground: oklch(0.98 0.005 285);
-  --destructive: oklch(0.64 0.21 18);
-  --destructive-foreground: oklch(0.98 0.01 20);
-  --border: oklch(1 0 0 / 9%);
-  --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.83 0.185 156);
-  --yes: oklch(0.83 0.185 156);
-  --no: oklch(0.66 0.2 20);
-  --gold: oklch(0.83 0.15 84);
-  --info: oklch(0.7 0.13 235);
+  --background: var(--bg);
+  --foreground: var(--text-primary);
+  --card: var(--surface);
+  --card-foreground: var(--text-primary);
+  --popover: hsl(221 28% 10%);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--brand);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--surface-2);
+  --muted-foreground: var(--text-secondary);
+  --accent: var(--brand-2);
+  --accent-foreground: hsl(224 41% 7%);
+  --destructive: var(--verdict-no);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: var(--border-cool);
+  --input: hsl(221 20% 22%);
+  --ring: var(--brand);
+  --yes: var(--verdict-yes);
+  --no: var(--verdict-no);
+  --gold: var(--verdict-pot);
+  --info: var(--cool-info);
 }
 
 @theme inline {
@@ -104,14 +116,13 @@
   --color-info: var(--info);
 
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-mono: var(--font-jetbrains-mono);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 6px);
 
-  /* Radix collapsible / accordion motion */
   --animate-collapsible-down: collapsible-down 0.24s ease-out;
   --animate-collapsible-up: collapsible-up 0.2s ease-out;
 
@@ -131,25 +142,6 @@
       height: 0;
     }
   }
-  @keyframes pulse-ring {
-    0% {
-      opacity: 0.9;
-      transform: scale(0.9);
-    }
-    70% {
-      opacity: 0;
-      transform: scale(2.2);
-    }
-    100% {
-      opacity: 0;
-      transform: scale(2.2);
-    }
-  }
-  @keyframes shimmer {
-    100% {
-      transform: translateX(100%);
-    }
-  }
 }
 
 @layer base {
@@ -158,45 +150,108 @@
   }
   html {
     color-scheme: dark;
+    scroll-behavior: smooth;
   }
   body {
     background: var(--background);
     color: var(--foreground);
-    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
   ::selection {
-    background: color-mix(in oklch, var(--primary) 30%, transparent);
+    background: color-mix(in oklch, var(--primary) 32%, transparent);
   }
 }
 
-/* ── Ambient page backdrop: cool ink with faint emerald/indigo aurora + grid ── */
+/* ── Editorial type scale (adopted from the source design language) ── */
+.display-xl {
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(2.25rem, 7vw, 4.5rem);
+  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+.display-l {
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.85rem, 4vw, 3rem);
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+.eyebrow {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.body-l {
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+.mono-s {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+/* ── The cream inversion: re-scope the semantic tokens for a light band so
+      every token-driven child (the proof viewer) inverts with no logic change.
+      Accents are deepened for contrast on the warm light surface. ── */
+.surface-cream {
+  --background: var(--cream);
+  --foreground: var(--cream-ink);
+  --card: hsl(44 42% 99%);
+  --card-foreground: var(--cream-ink);
+  --popover: hsl(44 42% 99%);
+  --popover-foreground: var(--cream-ink);
+  --secondary: hsl(42 24% 91%);
+  --secondary-foreground: var(--cream-ink);
+  --muted: hsl(42 24% 91%);
+  --muted-foreground: var(--cream-muted);
+  --border: hsl(40 12% 12% / 0.12);
+  --input: hsl(40 12% 12% / 0.18);
+  --primary: hsl(258 68% 56%);
+  --accent: hsl(250 55% 54%);
+  --accent-foreground: hsl(0 0% 100%);
+  --gold: hsl(38 72% 40%);
+  --yes: hsl(156 55% 34%);
+  --no: hsl(0 62% 50%);
+  --info: hsl(205 72% 40%);
+  --ring: hsl(258 68% 56%);
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* ── Ambient backdrop: cool ink with a faint violet aurora + editorial grid ── */
 .app-backdrop {
   background-color: var(--background);
   background-image:
     radial-gradient(
-      60rem 40rem at 12% -8%,
-      color-mix(in oklch, var(--primary) 16%, transparent),
+      58rem 40rem at 10% -10%,
+      color-mix(in oklch, var(--primary) 18%, transparent),
       transparent 60%
     ),
     radial-gradient(
-      52rem 38rem at 92% 4%,
-      color-mix(in oklch, var(--accent) 15%, transparent),
+      50rem 36rem at 94% 2%,
+      color-mix(in oklch, var(--accent) 14%, transparent),
       transparent 62%
     );
 }
 .grid-overlay {
   background-image:
-    linear-gradient(to right, oklch(1 0 0 / 3.5%) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(1 0 0 / 3.5%) 1px, transparent 1px);
-  background-size: 3rem 3rem;
+    linear-gradient(to right, hsl(0 0% 100% / 3%) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(0 0% 100% / 3%) 1px, transparent 1px);
+  background-size: 3.25rem 3.25rem;
   mask-image: radial-gradient(70rem 45rem at 50% 0%, black, transparent 75%);
 }
 
 /* ── Reusable surface / text helpers ── */
 @utility glass {
-  background: color-mix(in oklch, var(--card) 82%, transparent);
+  background: color-mix(in oklch, var(--card) 78%, transparent);
   backdrop-filter: blur(12px);
   border: 1px solid var(--border);
 }
@@ -204,7 +259,7 @@
   background: linear-gradient(
     100deg,
     var(--foreground) 0%,
-    color-mix(in oklch, var(--primary) 70%, var(--foreground)) 100%
+    color-mix(in oklch, var(--primary) 82%, var(--foreground)) 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -212,12 +267,24 @@
 }
 @utility glow-primary {
   box-shadow:
-    0 0 0 1px color-mix(in oklch, var(--primary) 40%, transparent),
-    0 0 32px -8px color-mix(in oklch, var(--primary) 55%, transparent);
+    0 0 0 1px color-mix(in oklch, var(--primary) 42%, transparent),
+    0 0 30px -8px color-mix(in oklch, var(--primary) 58%, transparent);
 }
 @utility tabular {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
 }
 
 /* ── Solana wallet-adapter modal restyle to match the ink theme ── */
@@ -225,8 +292,8 @@
   background: var(--popover) !important;
   border: 1px solid var(--border) !important;
   border-radius: var(--radius-lg) !important;
-  box-shadow: 0 24px 64px -24px oklch(0 0 0 / 70%) !important;
-  font-family: var(--font-sans), sans-serif !important;
+  box-shadow: 0 24px 64px -24px hsl(0 0% 0% / 0.7) !important;
+  font-family: var(--font-geist-sans), sans-serif !important;
 }
 .wallet-adapter-modal-title {
   color: var(--foreground) !important;

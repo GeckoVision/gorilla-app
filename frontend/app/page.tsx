@@ -10,8 +10,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrustBadge } from "@/components/hero/trust-badge";
-import { FlowPipeline } from "@/components/hero/flow-pipeline";
 import { LiveDevnetStats } from "@/components/hero/live-devnet-stats";
+import { ProblemSection } from "@/components/home/problem-section";
+import { HowItWorks } from "@/components/home/how-it-works";
 import { explorerAddress, FORGE_PROGRAM_ID } from "@/lib/solana/config";
 
 const FEATURES = [
@@ -49,33 +50,30 @@ const toneRing = {
 
 export default function HomePage() {
   return (
-    <div className="mx-auto max-w-6xl px-4 sm:px-6">
-      {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="flex flex-col items-center gap-8 pt-16 pb-14 text-center sm:pt-24">
-        <span className="rounded-full border border-border/70 bg-secondary/40 px-3 py-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+    <>
+      {/* ── Hero (editorial, left-aligned) ───────────────────────────────── */}
+      <section className="mx-auto max-w-6xl px-4 pt-20 pb-16 sm:px-6 sm:pt-28">
+        <p className="eyebrow text-muted-foreground">
           Superteam × TxODDS · Prediction Markets &amp; Settlement
-        </span>
-
-        <h1 className="max-w-4xl text-4xl font-semibold leading-[1.05] tracking-tight text-balance sm:text-6xl">
-          Bet on sports —{" "}
-          <span className="text-gradient">and actually get paid</span>.
-        </h1>
-
-        <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground text-pretty">
-          An AI watches the game and places your bets. The second you win,
-          you&apos;re paid — automatically, from{" "}
-          <span className="font-medium text-foreground">
-            official match data no one can fake
-          </span>
-          . The result can&apos;t be fixed. No one can keep your money.
         </p>
 
-        <div className="flex flex-col items-center gap-4">
+        <h1 className="display-xl mt-5 max-w-4xl text-balance">
+          Bet on sports — and{" "}
+          <span className="text-gradient">actually get paid</span>.
+        </h1>
+
+        <p className="body-l mt-6 max-w-2xl text-muted-foreground text-pretty">
+          An AI places the bets. When the match ends, the official data pays the
+          winners automatically — on-chain. No bookie decides who won, and no
+          company can sit on your money.
+        </p>
+
+        <div className="mt-8 flex flex-col items-start gap-5">
           <TrustBadge />
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Button asChild size="lg">
               <Link href="/settlement">
-                Watch a bet pay itself out
+                See a settlement
                 <ArrowRight />
               </Link>
             </Button>
@@ -95,53 +93,48 @@ export default function HomePage() {
           </div>
         </div>
 
-        <LiveDevnetStats className="mt-4" />
+        <LiveDevnetStats className="mt-12" />
       </section>
 
-      {/* ── The loop ─────────────────────────────────────────────────────── */}
-      <section className="pb-14">
-        <Card className="overflow-hidden">
-          <CardContent className="flex flex-col gap-6 py-2">
-            <div className="flex flex-col gap-1">
-              <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
-                How a bet becomes a payout
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                One loop, entirely on devnet — from reading the market to a
-                cryptographically-settled payout.
-              </p>
-            </div>
-            <FlowPipeline className="py-2" />
-          </CardContent>
-        </Card>
-      </section>
+      {/* ── The problem (cream-inverted band) ────────────────────────────── */}
+      <ProblemSection />
 
-      {/* ── Feature cards ────────────────────────────────────────────────── */}
-      <section className="grid gap-4 pb-8 md:grid-cols-3">
-        {FEATURES.map((f) => (
-          <Link key={f.title} href={f.href} className="group">
-            <Card className="h-full transition-colors hover:border-border group-hover:bg-card/80">
-              <CardContent className="flex h-full flex-col gap-4">
-                <span
-                  className={`flex size-11 items-center justify-center rounded-xl ring-1 ${toneRing[f.tone]}`}
-                >
-                  <f.icon className="size-5" />
-                </span>
-                <h3 className="text-lg font-semibold leading-snug tracking-tight">
-                  {f.title}
-                </h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {f.body}
-                </p>
-                <span className="mt-auto inline-flex items-center gap-1.5 pt-2 text-sm font-medium text-foreground">
-                  {f.cta}
-                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-                </span>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+      {/* ── How it works (3 steps + the real pipeline) ───────────────────── */}
+      <HowItWorks />
+
+      {/* ── Why it holds up (feature cards) ──────────────────────────────── */}
+      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+        <p className="eyebrow text-primary">Why it holds up</p>
+        <h2 className="display-l mt-4 max-w-2xl text-balance">
+          Three guarantees, all on-chain.
+        </h2>
+
+        <div className="mt-12 grid gap-4 md:grid-cols-3">
+          {FEATURES.map((f) => (
+            <Link key={f.title} href={f.href} className="group">
+              <Card className="h-full transition-colors hover:border-primary/30 group-hover:bg-card/80">
+                <CardContent className="flex h-full flex-col gap-4">
+                  <span
+                    className={`flex size-11 items-center justify-center rounded-lg ring-1 ${toneRing[f.tone]}`}
+                  >
+                    <f.icon className="size-5" />
+                  </span>
+                  <h3 className="text-lg font-semibold leading-snug tracking-tight">
+                    {f.title}
+                  </h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {f.body}
+                  </p>
+                  <span className="mt-auto inline-flex items-center gap-1.5 pt-2 text-sm font-medium text-foreground">
+                    {f.cta}
+                    <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                  </span>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
       </section>
-    </div>
+    </>
   );
 }
