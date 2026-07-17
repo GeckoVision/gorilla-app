@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, JetBrains_Mono } from "next/font/google";
+import { Anton, Geist, JetBrains_Mono } from "next/font/google";
 
 import { SolanaProviders } from "@/components/wallet/wallet-provider";
 import { SiteNav } from "@/components/layout/site-nav";
@@ -19,6 +19,16 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+// Poster display face — self-hosted at build (CSP-safe, no runtime CDN).
+// Third type role alongside Geist (body/UI) and JetBrains Mono (data); used
+// ONLY for the sports-poster marketing surfaces, never functional UI.
+const anton = Anton({
+  variable: "--font-anton",
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "AgentForge Markets — Trustless agent-settled prediction markets",
   description:
@@ -33,7 +43,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${geistSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`dark ${geistSans.variable} ${jetbrainsMono.variable} ${anton.variable} h-full antialiased`}
     >
       <body className="min-h-full">
         <SolanaProviders>

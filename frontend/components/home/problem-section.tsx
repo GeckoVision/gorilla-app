@@ -7,13 +7,34 @@ const PROMISES = [
   "The match data decides — the payout is automatic.",
 ];
 
-/** The emotional contrast beat, on the page's single cream-inverted band. */
+/** The emotional contrast beat — a dark, atmospheric purple→gold poster band. */
 export function ProblemSection() {
   return (
-    <section aria-label="The problem" className="surface-cream border-y border-border">
+    <section
+      aria-label="The problem"
+      className="relative isolate overflow-hidden border-y border-border"
+    >
+      {/* dark atmospheric wash: purple top-left → gold bottom-right, over the
+          violet-charcoal base, with a faint grain film. Kept dark on purpose. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(72% 62% at 12% -6%, color-mix(in oklch, var(--primary) 24%, transparent), transparent 60%), radial-gradient(64% 66% at 98% 108%, color-mix(in oklch, var(--gold) 15%, transparent), transparent 60%)",
+          }}
+        />
+        <div className="poster-grain absolute inset-0" />
+      </div>
+
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
-        <p className="eyebrow text-primary">The problem</p>
-        <h2 className="display-l mt-4 max-w-3xl text-balance">
+        <p className="eyebrow flex items-center gap-2 text-gold">
+          <span aria-hidden className="font-display text-base">
+            {"//"}
+          </span>
+          The problem
+        </p>
+        <h2 className="display-poster mt-4 max-w-3xl text-balance">
           You win. Then the excuses start.
         </h2>
         <p className="body-l mt-6 max-w-2xl text-muted-foreground text-pretty">
@@ -24,7 +45,7 @@ export function ProblemSection() {
         </p>
 
         <div className="mt-12 grid gap-4 md:grid-cols-2">
-          <div className="rounded-xl border border-border bg-card p-6">
+          <div className="rounded-xl border border-no/25 bg-no/[0.06] p-6 backdrop-blur-sm">
             <span className="eyebrow text-no">Everywhere else</span>
             <ul className="mt-4 flex flex-col gap-3">
               {EXCUSES.map((e) => (
@@ -34,18 +55,18 @@ export function ProblemSection() {
                 </li>
               ))}
             </ul>
-            <p className="mt-5 border-t border-border pt-4 text-sm font-medium">
+            <p className="mt-5 border-t border-no/20 pt-4 text-sm font-medium text-foreground">
               You won. You waited. You got nothing.
             </p>
           </div>
 
-          <div className="rounded-xl border border-primary/30 bg-primary/5 p-6">
+          <div className="rounded-xl border border-primary/30 bg-primary/[0.07] p-6 backdrop-blur-sm">
             <span className="eyebrow text-primary">AgentForge</span>
             <ul className="mt-4 flex flex-col gap-3">
               {PROMISES.map((p) => (
                 <li key={p} className="flex items-center gap-3 text-sm">
                   <CircleCheck className="size-4 shrink-0 text-yes" />
-                  <span>{p}</span>
+                  <span className="text-foreground">{p}</span>
                 </li>
               ))}
             </ul>

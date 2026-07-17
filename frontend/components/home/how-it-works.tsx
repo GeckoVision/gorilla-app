@@ -27,8 +27,13 @@ export function HowItWorks() {
   return (
     <section aria-label="How it works" className="border-t border-border">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
-        <p className="eyebrow text-primary">How it works</p>
-        <h2 className="display-l mt-4 max-w-2xl text-balance">
+        <p className="eyebrow flex items-center gap-2 text-gold">
+          <span aria-hidden className="font-display text-base">
+            {"//"}
+          </span>
+          How it works
+        </p>
+        <h2 className="display-poster mt-4 max-w-2xl text-balance">
           Three steps. Then you&apos;re hands-off.
         </h2>
 

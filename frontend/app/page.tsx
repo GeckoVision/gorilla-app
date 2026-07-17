@@ -1,19 +1,10 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  ExternalLink,
-  Lock,
-  ScrollText,
-  Trophy,
-} from "lucide-react";
+import { ArrowRight, Lock, ScrollText, Trophy } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrustBadge } from "@/components/hero/trust-badge";
-import { LiveDevnetStats } from "@/components/hero/live-devnet-stats";
+import { PosterHero } from "@/components/hero/poster-hero";
 import { ProblemSection } from "@/components/home/problem-section";
 import { HowItWorks } from "@/components/home/how-it-works";
-import { explorerAddress, FORGE_PROGRAM_ID } from "@/lib/solana/config";
 
 const FEATURES = [
   {
@@ -51,52 +42,10 @@ const toneRing = {
 export default function HomePage() {
   return (
     <>
-      {/* ── Hero (editorial, left-aligned) ───────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-4 pt-20 pb-16 sm:px-6 sm:pt-28">
-        <p className="eyebrow text-muted-foreground">
-          Superteam × TxODDS · Prediction Markets &amp; Settlement
-        </p>
+      {/* ── Hero (sports-poster) ──────────────────────────────────────────── */}
+      <PosterHero />
 
-        <h1 className="display-xl mt-5 max-w-4xl text-balance">
-          Bet on sports — and{" "}
-          <span className="text-gradient">actually get paid</span>.
-        </h1>
-
-        <p className="body-l mt-6 max-w-2xl text-muted-foreground text-pretty">
-          An AI places the bets. When the match ends, the official data pays the
-          winners automatically — on-chain. No bookie decides who won, and no
-          company can sit on your money.
-        </p>
-
-        <div className="mt-8 flex flex-col items-start gap-5">
-          <TrustBadge />
-          <div className="flex flex-wrap items-center gap-3">
-            <Button asChild size="lg">
-              <Link href="/settlement">
-                See a settlement
-                <ArrowRight />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/agent">Watch the agent</Link>
-            </Button>
-            <Button asChild size="lg" variant="ghost">
-              <a
-                href={explorerAddress(FORGE_PROGRAM_ID.toBase58(), "devnet")}
-                target="_blank"
-                rel="noreferrer"
-              >
-                View program on Solana
-                <ExternalLink />
-              </a>
-            </Button>
-          </div>
-        </div>
-
-        <LiveDevnetStats className="mt-12" />
-      </section>
-
-      {/* ── The problem (cream-inverted band) ────────────────────────────── */}
+      {/* ── The problem (dark atmospheric band) ──────────────────────────── */}
       <ProblemSection />
 
       {/* ── How it works (3 steps + the real pipeline) ───────────────────── */}
@@ -104,8 +53,13 @@ export default function HomePage() {
 
       {/* ── Why it holds up (feature cards) ──────────────────────────────── */}
       <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-        <p className="eyebrow text-primary">Why it holds up</p>
-        <h2 className="display-l mt-4 max-w-2xl text-balance">
+        <p className="eyebrow flex items-center gap-2 text-gold">
+          <span aria-hidden className="font-display text-base">
+            {"//"}
+          </span>
+          Why it holds up
+        </p>
+        <h2 className="display-poster mt-4 max-w-2xl text-balance">
           Three guarantees, all on-chain.
         </h2>
 

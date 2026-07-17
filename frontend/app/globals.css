@@ -12,7 +12,7 @@
 */
 :root {
   /* base tokens */
-  --bg: hsl(224 41% 7%); /* #0B0F1A */
+  --bg: hsl(256 30% 6.5%); /* ~#0C0A12 — violet-biased charcoal, marries the purple */
   --surface: hsl(221 27% 12%); /* #161B26 */
   --surface-2: hsl(221 22% 15%);
   --border-cool: hsl(221 20% 18%);
@@ -44,7 +44,7 @@
   --muted: var(--surface-2);
   --muted-foreground: var(--text-secondary);
   --accent: var(--brand-2);
-  --accent-foreground: hsl(224 41% 7%);
+  --accent-foreground: hsl(256 30% 6.5%);
   --destructive: var(--verdict-no);
   --destructive-foreground: hsl(0 0% 100%);
   --border: var(--border-cool);
@@ -77,7 +77,7 @@
   --muted: var(--surface-2);
   --muted-foreground: var(--text-secondary);
   --accent: var(--brand-2);
-  --accent-foreground: hsl(224 41% 7%);
+  --accent-foreground: hsl(256 30% 6.5%);
   --destructive: var(--verdict-no);
   --destructive-foreground: hsl(0 0% 100%);
   --border: var(--border-cool);
@@ -117,6 +117,7 @@
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-jetbrains-mono);
+  --font-display: var(--font-anton); /* poster display — marketing surfaces only */
 
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
@@ -198,6 +199,27 @@
   line-height: 1.5;
 }
 
+/* ── Poster display (sports-editorial) — Anton, marketing surfaces ONLY.
+      Never used on functional/data UI; the barbell keeps rigor calm. ── */
+.display-poster {
+  font-family: var(--font-anton), var(--font-geist-sans), sans-serif;
+  font-size: clamp(1.9rem, 4.4vw, 3.1rem);
+  line-height: 1;
+  font-weight: 400; /* Anton is single-weight 400 but reads heavy */
+  letter-spacing: 0.008em;
+  text-transform: uppercase;
+}
+/* The oversized hero background type — giant, compressed, all-caps. */
+.poster-headline {
+  font-family: var(--font-anton), var(--font-geist-sans), sans-serif;
+  font-size: clamp(3rem, 16vw, 12rem);
+  line-height: 0.85;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
 /* ── The cream inversion: re-scope the semantic tokens for a light band so
       every token-driven child (the proof viewer) inverts with no logic change.
       Accents are deepened for contrast on the warm light surface. ── */
@@ -249,6 +271,22 @@
   mask-image: radial-gradient(70rem 45rem at 50% 0%, black, transparent 75%);
 }
 
+/* ── Poster texture (marketing surfaces only) ──────────────────────────────
+      Faint vertical column rules + a STATIC grain film. Both are decorative,
+      non-animated, and reduced-motion-safe by construction. NEVER apply to a
+      data/proof surface — the barbell keeps those clean. */
+.poster-vgrid {
+  background-image: repeating-linear-gradient(
+    to right,
+    hsl(0 0% 100% / 0.03) 0 1px,
+    transparent 1px 5.5rem
+  );
+}
+.poster-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.045;
+}
+
 /* ── Reusable surface / text helpers ── */
 @utility glass {
   background: color-mix(in oklch, var(--card) 78%, transparent);
@@ -260,6 +298,20 @@
     100deg,
     var(--foreground) 0%,
     color-mix(in oklch, var(--primary) 82%, var(--foreground)) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+/* Purple → gold, the electric poster gradient (the "get paid" beat). Purple
+   leads, the right third warms clearly to gold — the second accent, promoted. */
+@utility text-gradient-gold {
+  background: linear-gradient(
+    95deg,
+    color-mix(in oklch, var(--primary) 84%, white) 0%,
+    var(--primary) 32%,
+    color-mix(in oklch, var(--gold) 68%, var(--primary)) 66%,
+    var(--gold) 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
