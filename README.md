@@ -74,8 +74,18 @@ reverts. The program never calls the outcome.
 cd backend
 uv sync
 uv run python -m agentforge          # the agent loop, recorded/offline
+uv run python -m agentforge watch    # stream live sharp-money signals ($0, offline)
+uv run python -m agentforge watch --act   # + the policy-gated bet, within a custody cap
 uv run pytest                        # the suite (offline, no network)
 ```
+
+`watch` is the **signal-first** view of the same agent core: it streams the odds feed
+tick by tick and flags each **sharp move** — a professional-money shift in a line's
+implied probability (book · market · outcome · old%→new% · Δpp · direction) — as a live
+signal. Sharp money moves a line early; catching it before the market is the edge. The
+signal is the hero; `--act` layers on the hands-off bet the agent *would* sign within its
+custody cap (the wallet refuses anything past the cap). Recorded / `$0` / offline by
+default; `--live` polls the real TxLINE feed.
 
 Live devnet demos: `uv run python scripts/e2e_settlement.py` (local signer) and `scripts/e2e_settlement_privy.py` (enclave custody) — see `backend/README` for the RPC + funding setup.
 
