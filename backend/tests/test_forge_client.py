@@ -38,6 +38,7 @@ from agentforge.forge_client import (
     load_recorded_proof,
     market_pda,
     position_pda,
+    proof_period,
     settle_tx,
     side_index,
     to_lamports,
@@ -53,6 +54,7 @@ PROOF = load_recorded_proof(PROOF_PATH)
 
 FIXTURE_ID = 18179549
 STAT_KEY = 1
+PERIOD = 4  # mirrors the recorded proof's statToProve.period (bound at settle — F1)
 # Verified against the deployed program / the probe's derivation.
 KNOWN_ROOT = "DjE6qSDHJEUwbXXTV5v1YSQpzfsWcRsARbWqLqR3KoSA"
 KNOWN_MARKET = "6AiyHQnCD4pFg8Pc5vJH1J9uNKJiskCRQLGdaaErsbz2"
@@ -124,7 +126,7 @@ def test_position_and_vault_pdas_are_deterministic():
 def test_create_market_ix_accounts_and_data():
     authority = Pubkey.from_string("3gtfwhBtFKB4k9M7vjcZ9qCAW6HwP4Y2WLJiJbimBbrj")
     pred = TraderPredicate(threshold=0, comparison=Comparison.GREATER_THAN)
-    ix = build_create_market_ix(FIXTURE_ID, STAT_KEY, pred, authority)
+    ix = build_create_market_ix(FIXTURE_ID, STAT_KEY, pred, PERIOD, authority)
 
     assert ix.program_id == FORGE_PROGRAM_ID
     market, _ = market_pda(FIXTURE_ID, STAT_KEY)
@@ -144,6 +146,7 @@ def test_create_market_ix_accounts_and_data():
     assert r.u32() == STAT_KEY
     assert r.i32() == 0  # threshold
     assert r.u8() == int(Comparison.GREATER_THAN)
+    assert r.i32() == PERIOD  # period — bound at settle (F1)
     assert r.o == len(ix.data)  # nothing extra
 
 
@@ -242,6 +245,28 @@ def test_winning_predicate_holds_for_the_recorded_value():
     assert pred.comparison == Comparison.GREATER_THAN
     assert pred.threshold == value - 1
     assert value > pred.threshold  # holds -> settle records winner = Yes
+
+
+def test_honest_create_binds_the_settle_proof_period():
+    """F1 honest-path guard: a market MUST be opened with the proof's period, else settle's
+    period-binding (require stat_a.period == market.period) reverts the honest settle. This
+    ties the create-market period to what encode_settle_args submits — falsifiable offline."""
+    period = proof_period(PROOF)
+    assert period == PROOF["statToProve"]["period"] == 4
+    # the create-market ix must carry exactly this period (byte 8+8+4+4+1 .. +4)...
+    pred = winning_predicate(PROOF)
+    ix = build_create_market_ix(FIXTURE_ID, STAT_KEY, pred, period, Pubkey.default())
+    r = _Reader(ix.data)
+    r.take(8), r.i64(), r.u32(), r.i32(), r.u8()  # skip disc, fixture, stat, threshold, comparison
+    assert r.i32() == period
+    # ...and it must equal the period the settle args submit (stat_a.period) — so the
+    # honest create → settle pair is period-consistent and does NOT self-revert.
+    s = _Reader(encode_settle_args(PROOF))
+    s.take(8), s.i64()  # disc, ts
+    s.i64(), s.i32(), s.i64(), s.i64(), s.arr32()  # fixture_summary
+    s.proof_vec(), s.proof_vec()  # subTreeProof, mainTreeProof
+    s.u32(), s.i32()  # stat_a.key, stat_a.value
+    assert s.i32() == period  # stat_a.period == market period
 
 
 # ── claim ──────────────────────────────────────────────────────────────────────────

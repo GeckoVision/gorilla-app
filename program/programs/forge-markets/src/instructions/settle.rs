@@ -62,6 +62,34 @@ pub fn settle_handler(
     stat_b: Option<StatTerm>,
     op: Option<BinaryExpression>,
 ) -> Result<()> {
+    // ── F1: bind the caller-supplied oracle args to THIS market BEFORE the CPI ──
+    // `settle` is permissionless. `validate_stat` only proves "this stat is genuine
+    // in a genuine fixture" — it has NO concept of the market. So without these
+    // checks an attacker submits a genuine proof for a DIFFERENT TxODDS data point
+    // whose value yields their preferred outcome and drains the pot. Pin the proof
+    // to the market's fixture, stat, single-stat shape, and period.
+    require!(
+        fixture_summary.fixture_id == ctx.accounts.market.fixture_id,
+        SettlementError::FixtureMismatch
+    );
+    require!(
+        stat_a.stat_to_prove.key == ctx.accounts.market.stat_key,
+        SettlementError::StatMismatch
+    );
+    // The market predicate is single-stat; a two-stat Add/Subtract could move the
+    // evaluated value off the bound stat_key, so no stat_b / op is permitted.
+    require!(
+        stat_b.is_none() && op.is_none(),
+        SettlementError::MultiStatNotAllowed
+    );
+    // Period binds the proof to the market's phase (e.g. full-time, not half-time):
+    // the same fixture+stat has different values per period, which would flip the
+    // outcome if left unbound.
+    require!(
+        stat_a.stat_to_prove.period == ctx.accounts.market.period,
+        SettlementError::PeriodMismatch
+    );
+
     let predicate = ctx.accounts.market.predicate;
 
     // Trustless outcome: the oracle CPI decides. A tampered proof makes the CPI

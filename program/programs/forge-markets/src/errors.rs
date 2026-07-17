@@ -39,4 +39,21 @@ pub enum SettlementError {
 
     #[msg("txoracle CPI return data was not a decodable bool")]
     OracleBadReturnData,
+
+    // ── appended: F1 market-binding of the caller-supplied oracle args ──────────
+    // `settle` is permissionless and the oracle only proves "a genuine stat in a
+    // genuine fixture" — it has no concept of THIS market. These bind the args to
+    // the market so an attacker cannot settle against a different-but-genuine data
+    // point. Appended at the END (never reorder — code = 6000 + variant index).
+    #[msg("Proof fixture_id does not match this market's fixture_id")]
+    FixtureMismatch,
+
+    #[msg("Proven stat key does not match this market's stat_key")]
+    StatMismatch,
+
+    #[msg("Market is single-stat: a second stat term / binary op is not allowed")]
+    MultiStatNotAllowed,
+
+    #[msg("Proven stat period does not match this market's period")]
+    PeriodMismatch,
 }

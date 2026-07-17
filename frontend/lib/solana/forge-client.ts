@@ -59,6 +59,10 @@ export const SETTLEMENT_ERRORS: Record<number, string> = {
   6008: "OracleNoReturnData",
   6009: "OracleReturnWrongProgram",
   6010: "OracleBadReturnData",
+  6011: "FixtureMismatch",
+  6012: "StatMismatch",
+  6013: "MultiStatNotAllowed",
+  6014: "PeriodMismatch",
 };
 
 export function toLamports(sol: number): bigint {

@@ -187,6 +187,7 @@ def main() -> int:
     proof = load_recorded_proof(PROOF_PATH)
     fixture_id = int(proof["summary"]["fixtureId"])
     stat_key = int(proof["statToProve"]["key"])
+    period = int(proof["statToProve"]["period"])
     predicate = winning_predicate(proof)
 
     authority = Keypair.from_bytes(bytes(json.load(open(DEPLOY_KEYS / "deploy-authority.json"))))
@@ -209,7 +210,7 @@ def main() -> int:
     steps = [
         (
             "create_market",
-            create_market_tx(fixture_id, stat_key, predicate, authority.pubkey()),
+            create_market_tx(fixture_id, stat_key, predicate, period, authority.pubkey()),
             authority,
             [authority],
         ),

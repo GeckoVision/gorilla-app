@@ -58,8 +58,13 @@ pub struct Market {
     pub vault_bump: u8, // 1
     /// `forge:v1`.
     pub schema_version: u8, // 1
+    /// The stat PERIOD the predicate is evaluated over (e.g. full-time vs half-time).
+    /// Bound so `settle` cannot prove the same fixture+stat for a different period and
+    /// flip the outcome (F1). Drawn from the reserved tail so the account byte-size is
+    /// UNCHANGED (no realloc; existing markets stay decodable). `ScoreStat.period` is i32.
+    pub period: i32, // 4  (taken from _reserved: 32 → 28)
     /// Future use (no realloc churn).
-    pub _reserved: [u8; 32], // 32
+    pub _reserved: [u8; 28], // 28
 }
 
 /// `Position` — one staker's stake on one market. Pro-rata claim reads this.

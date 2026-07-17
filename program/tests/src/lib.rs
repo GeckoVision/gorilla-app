@@ -131,7 +131,8 @@ pub struct MarketView {
     pub bump: u8,
     pub vault_bump: u8,
     pub schema_version: u8,
-    pub _reserved: [u8; 32],
+    pub period: i32,
+    pub _reserved: [u8; 28],
 }
 
 /// Decoded `Position`.
@@ -242,11 +243,17 @@ pub fn daily_roots_account(root: &[u8; 32]) -> Account {
 
 // ============================ instruction-data builders =======================
 
-pub fn data_create_market(fixture_id: i64, stat_key: u32, predicate: &TraderPredicate) -> Vec<u8> {
+pub fn data_create_market(
+    fixture_id: i64,
+    stat_key: u32,
+    predicate: &TraderPredicate,
+    period: i32,
+) -> Vec<u8> {
     let mut d = ix_disc("create_market").to_vec();
     d.extend_from_slice(&borsh::to_vec(&fixture_id).unwrap());
     d.extend_from_slice(&borsh::to_vec(&stat_key).unwrap());
     d.extend_from_slice(&borsh::to_vec(predicate).unwrap());
+    d.extend_from_slice(&borsh::to_vec(&period).unwrap());
     d
 }
 
@@ -290,6 +297,7 @@ pub fn ix_create_market(
     fixture_id: i64,
     stat_key: u32,
     predicate: &TraderPredicate,
+    period: i32,
 ) -> Instruction {
     let (market, _) = market_pda(fixture_id, stat_key);
     let (vault, _) = vault_pda(&market);
@@ -301,7 +309,7 @@ pub fn ix_create_market(
             AccountMeta::new(*authority, true),
             AccountMeta::new_readonly(SYSTEM_PROGRAM, false),
         ],
-        data: data_create_market(fixture_id, stat_key, predicate),
+        data: data_create_market(fixture_id, stat_key, predicate, period),
     }
 }
 

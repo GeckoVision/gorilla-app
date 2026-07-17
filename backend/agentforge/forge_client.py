@@ -243,10 +243,12 @@ def with_priority_fee(tx: UnsignedTx, micro_lamports: int) -> UnsignedTx:
 
 # ── instruction builders (account order MUST match each #[derive(Accounts)]) ─────
 def build_create_market_ix(
-    fixture_id: int, stat_key: int, predicate: TraderPredicate, authority: Pubkey
+    fixture_id: int, stat_key: int, predicate: TraderPredicate, period: int, authority: Pubkey
 ) -> Instruction:
     market, _ = market_pda(fixture_id, stat_key)
     vault, _ = vault_pda(market)
+    # arg order MUST match the program: fixture_id, stat_key, predicate, period.
+    # `period` binds the stat phase the settle proof must match (F1) — see settle.rs.
     data = (
         DISCRIMINATORS["create_market"]
         + _Borsh()
@@ -254,6 +256,7 @@ def build_create_market_ix(
         .u32(stat_key)
         .i32(predicate.threshold)
         .u8(int(predicate.comparison))
+        .i32(period)
         .bytes()
     )
     metas = [
@@ -344,9 +347,9 @@ def build_claim_ix(fixture_id: int, stat_key: int, staker: Pubkey) -> Instructio
 
 # ── UnsignedTx wrappers (what the wallet signs; carry the allow-list identity) ────
 def create_market_tx(
-    fixture_id: int, stat_key: int, predicate: TraderPredicate, authority: Pubkey
+    fixture_id: int, stat_key: int, predicate: TraderPredicate, period: int, authority: Pubkey
 ) -> UnsignedTx:
-    ix = build_create_market_ix(fixture_id, stat_key, predicate, authority)
+    ix = build_create_market_ix(fixture_id, stat_key, predicate, period, authority)
     return UnsignedTx((ix,), FORGE_PROGRAM_ID, "create_market")
 
 
@@ -411,6 +414,13 @@ def winning_predicate(proof: dict[str, Any]) -> TraderPredicate:
     return TraderPredicate(threshold=value - 1, comparison=Comparison.GREATER_THAN)
 
 
+def proof_period(proof: dict[str, Any]) -> int:
+    """The stat PERIOD a market must bind so this proof settles it (F1). ``settle`` requires
+    ``stat_a.period == market.period``, so a market opened for this proof MUST store this
+    period — otherwise the honest settle reverts with ``PeriodMismatch``."""
+    return int(proof["statToProve"]["period"])
+
+
 # Human names for the program's custom errors (code = 6000 + variant index), so a live
 # failure reports the exact fail-closed reason instead of a bare number.
 SETTLEMENT_ERRORS: dict[int, str] = {
@@ -425,4 +435,8 @@ SETTLEMENT_ERRORS: dict[int, str] = {
     6008: "OracleNoReturnData",
     6009: "OracleReturnWrongProgram",
     6010: "OracleBadReturnData",
+    6011: "FixtureMismatch",
+    6012: "StatMismatch",
+    6013: "MultiStatNotAllowed",
+    6014: "PeriodMismatch",
 }

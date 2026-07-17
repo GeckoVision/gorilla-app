@@ -70,14 +70,18 @@ security_txt! {
 pub mod forge_markets {
     use super::*;
 
-    /// Open a two-sided market over `(fixture_id, stat_key)` with a YES predicate.
+    /// Open a two-sided market over `(fixture_id, stat_key, period)` with a YES
+    /// predicate. `period` binds the stat phase the oracle proof must match at settle.
     pub fn create_market(
         ctx: Context<CreateMarket>,
         fixture_id: i64,
         stat_key: u32,
         predicate: TraderPredicate,
+        period: i32,
     ) -> Result<()> {
-        instructions::create_market::create_market_handler(ctx, fixture_id, stat_key, predicate)
+        instructions::create_market::create_market_handler(
+            ctx, fixture_id, stat_key, predicate, period,
+        )
     }
 
     /// Stake `amount` lamports on `side`.

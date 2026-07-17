@@ -41,6 +41,7 @@ pub fn create_market_handler(
     fixture_id: i64,
     stat_key: u32,
     predicate: TraderPredicate,
+    period: i32,
 ) -> Result<()> {
     let market = &mut ctx.accounts.market;
     market.fixture_id = fixture_id;
@@ -55,7 +56,8 @@ pub fn create_market_handler(
     market.bump = ctx.bumps.market;
     market.vault_bump = ctx.bumps.vault;
     market.schema_version = SCHEMA_VERSION;
-    market._reserved = [0u8; 32];
+    market.period = period; // bound at settle (F1); see settle.rs / state.rs
+    market._reserved = [0u8; 28];
 
     emit!(MarketCreated {
         market: market.key(),

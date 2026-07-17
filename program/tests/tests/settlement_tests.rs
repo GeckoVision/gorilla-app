@@ -16,6 +16,9 @@ use solana_sdk::pubkey::Pubkey;
 
 const FIXTURE_ID: i64 = 12_345;
 const STAT_KEY: u32 = 7;
+/// The stat period the market binds (mirrors the real recorded proof's period = 4).
+/// `settle` must be given a proof for THIS period; a different period reverts (F1).
+const PERIOD: i32 = 4;
 
 /// The "true" on-chain root the txoracle double holds.
 fn true_root() -> [u8; 32] {
@@ -62,7 +65,7 @@ fn settle_args_with_value(submitted_root: [u8; 32], stat_value: i32) -> SettleAr
         stat_to_prove: ScoreStat {
             key: STAT_KEY,
             value: stat_value,
-            period: 0,
+            period: PERIOD,
         },
         event_stat_root: submitted_root,
         stat_proof: vec![ProofNode {
@@ -109,6 +112,7 @@ fn setup_open_market(stake_yes: u64, stake_no: u64) -> (Env, Pubkey, Pubkey, Pub
         FIXTURE_ID,
         STAT_KEY,
         &predicate(),
+        PERIOD,
     ));
     assert!(
         res.program_result.is_ok(),
@@ -331,4 +335,108 @@ fn settle_rejects_wrong_oracle_program() {
         "settle must reject a non-txoracle program: {:?}",
         res.program_result
     );
+}
+
+// ── F1 (audit finding, severity 9): market-binding of the oracle args ──────────
+// `settle` is permissionless and the oracle only proves "this is a genuine stat in
+// SOME genuine fixture" — it has no concept of THIS market. Without binding the
+// caller-supplied fixture_summary / stat_a / stat_b / op to the market, an attacker
+// settles against a DIFFERENT-but-genuine TxODDS data point whose value yields their
+// preferred outcome (the oracle still returns Ok(true)), draining the pot. These
+// tests submit args that WOULD satisfy the oracle (root matches → the double does
+// NOT revert) but do NOT correspond to the market, and assert settle rejects them
+// BEFORE the CPI. Each keeps the market Open (nothing folded).
+
+#[test]
+fn settle_rejects_fixture_id_mismatch() {
+    let (mut env, market, _, _) = setup_open_market(3 * SOL, 1 * SOL);
+    let (roots_key, _) = (Pubkey::new_unique(), 0u8);
+    env.set(roots_key, daily_roots_account(&true_root()));
+
+    // A genuine proof (root matches the seeded root → the oracle would say Ok(true))
+    // whose fixture_id is NOT this market's fixture.
+    let (ts, mut summary, fp, mp, stat_a, stat_b, op) = settle_args(true_root());
+    summary.fixture_id = FIXTURE_ID + 999;
+    let res = env.process(&ix_settle(
+        &market, &roots_key, &TXORACLE_ID, ts, &summary, &fp, &mp, &stat_a, &stat_b, &op,
+    ));
+    assert!(
+        res.program_result.is_err(),
+        "settle must reject a fixture_id ≠ the market's (F1): {:?}",
+        res.program_result
+    );
+    let m = decode_market(&env.get(&market).data).expect("market decodes");
+    assert_eq!(
+        m.state,
+        MarketState::Open,
+        "market must stay Open after a rejected settle"
+    );
+}
+
+#[test]
+fn settle_rejects_stat_key_mismatch() {
+    let (mut env, market, _, _) = setup_open_market(3 * SOL, 1 * SOL);
+    let (roots_key, _) = (Pubkey::new_unique(), 0u8);
+    env.set(roots_key, daily_roots_account(&true_root()));
+
+    // A genuine, provable stat — but for a DIFFERENT stat key than the market bound.
+    let (ts, summary, fp, mp, mut stat_a, stat_b, op) = settle_args(true_root());
+    stat_a.stat_to_prove.key = STAT_KEY + 1;
+    let res = env.process(&ix_settle(
+        &market, &roots_key, &TXORACLE_ID, ts, &summary, &fp, &mp, &stat_a, &stat_b, &op,
+    ));
+    assert!(
+        res.program_result.is_err(),
+        "settle must reject a stat_key ≠ the market's (F1): {:?}",
+        res.program_result
+    );
+    let m = decode_market(&env.get(&market).data).expect("market decodes");
+    assert_eq!(m.state, MarketState::Open, "market must stay Open");
+}
+
+#[test]
+fn settle_rejects_multi_stat_expression() {
+    let (mut env, market, _, _) = setup_open_market(3 * SOL, 1 * SOL);
+    let (roots_key, _) = (Pubkey::new_unique(), 0u8);
+    env.set(roots_key, daily_roots_account(&true_root()));
+
+    // A second stat + a binary op could shift the evaluated value off the market's
+    // single bound stat_key — the market predicate is single-stat, so reject any
+    // two-stat settle.
+    let (ts, summary, fp, mp, stat_a, _stat_b, _op) = settle_args(true_root());
+    let stat_b = Some(stat_a.clone());
+    let op = Some(BinaryExpression::Add);
+    let res = env.process(&ix_settle(
+        &market, &roots_key, &TXORACLE_ID, ts, &summary, &fp, &mp, &stat_a, &stat_b, &op,
+    ));
+    assert!(
+        res.program_result.is_err(),
+        "settle must reject a spurious stat_b/op (F1): {:?}",
+        res.program_result
+    );
+    let m = decode_market(&env.get(&market).data).expect("market decodes");
+    assert_eq!(m.state, MarketState::Open, "market must stay Open");
+}
+
+#[test]
+fn settle_rejects_period_mismatch() {
+    let (mut env, market, _, _) = setup_open_market(3 * SOL, 1 * SOL);
+    let (roots_key, _) = (Pubkey::new_unique(), 0u8);
+    env.set(roots_key, daily_roots_account(&true_root()));
+
+    // Same fixture + stat, but a proof for a DIFFERENT period (e.g. half-time vs
+    // full-time). The stat value differs by period and would flip the outcome, so a
+    // period ≠ the market's must be rejected.
+    let (ts, summary, fp, mp, mut stat_a, stat_b, op) = settle_args(true_root());
+    stat_a.stat_to_prove.period = PERIOD + 1;
+    let res = env.process(&ix_settle(
+        &market, &roots_key, &TXORACLE_ID, ts, &summary, &fp, &mp, &stat_a, &stat_b, &op,
+    ));
+    assert!(
+        res.program_result.is_err(),
+        "settle must reject a period ≠ the market's (F1): {:?}",
+        res.program_result
+    );
+    let m = decode_market(&env.get(&market).data).expect("market decodes");
+    assert_eq!(m.state, MarketState::Open, "market must stay Open");
 }

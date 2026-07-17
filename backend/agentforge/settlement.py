@@ -38,6 +38,7 @@ from .forge_client import (
     create_market_tx,
     decode_market,
     market_pda,
+    proof_period,
     settle_tx,
     stake_tx,
     to_lamports,
@@ -151,6 +152,8 @@ def run_settlement(
     market, _ = market_pda(fixture_id, stat_key)
     vault, _ = vault_pda(market)
     predicate = winning_predicate(proof)
+    # Bind the market to the proof's period so the honest settle passes the F1 check.
+    period = proof_period(proof)
 
     if rpc.get_account_data(str(market)) is not None:
         raise SettlementError(
@@ -158,8 +161,9 @@ def run_settlement(
             "use a fresh nonce for a repeatable demo"
         )
 
-    # 1 · open the market (the funder is the authority) with a predicate that HOLDS.
-    create = create_market_tx(fixture_id, stat_key, predicate, funder.pubkey)
+    # 1 · open the market (the funder is the authority) with a predicate that HOLDS
+    #     and the proof's period (so settle's F1 period-binding matches).
+    create = create_market_tx(fixture_id, stat_key, predicate, period, funder.pubkey)
     create_sig = funder.sign_within_policy(
         TxIntent(CREATE_PURPOSE, 0.0, f"open market {fixture_id}/{stat_key}", unsigned_tx=create)
     ).ref
