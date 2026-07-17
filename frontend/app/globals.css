@@ -370,18 +370,31 @@
       transparent 70%
     );
 }
-/* Ghosted baseline wordmark low in the hero — Anton, very low opacity, behind
-   all content and clipped by the hero's overflow-hidden. Sized to the viewport;
-   the last glyphs may bleed off-frame (poster crop) without page overflow. */
-.hero-ghost-wordmark {
+/* ── The hero wordmark (Monolog-style) — the GIANT bottom-anchored brand type
+      that IS the hero. Anton, sized to span the viewport; a muted off-white/grey
+      crown warming down into the violet brand, its feet dissolving into the
+      grain via a soft bottom mask. High presence, but calm. STATIC /
+      reduced-motion-safe. Centered; any side-bleed is clipped by the hero's
+      overflow-hidden, so a full-bleed poster crop never causes page overflow. */
+.hero-wordmark {
   font-family: var(--font-anton), var(--font-geist-sans), sans-serif;
-  font-size: clamp(4.5rem, 22vw, 17rem);
-  line-height: 0.72;
+  font-size: clamp(3.25rem, 20.5vw, 15rem);
+  line-height: 0.8;
   letter-spacing: -0.02em;
   text-transform: uppercase;
   white-space: nowrap;
-  color: var(--foreground);
-  opacity: 0.04;
+  background: linear-gradient(
+    178deg,
+    color-mix(in oklch, var(--foreground) 80%, var(--primary)) 2%,
+    color-mix(in oklch, var(--primary) 90%, white) 58%,
+    var(--primary) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* feet dissolve into the grain toward the bottom crop */
+  -webkit-mask-image: linear-gradient(to bottom, #000 56%, transparent 97%);
+  mask-image: linear-gradient(to bottom, #000 56%, transparent 97%);
 }
 
 /* ── Reusable surface / text helpers ── */
