@@ -278,6 +278,111 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   opacity: 0.045;
 }
+/* Moodier grain for the cinematic hero atmosphere (reuses the .poster-grain
+   image; only lifts the film density). Still static / reduced-motion-safe. */
+.poster-grain-strong {
+  opacity: 0.08;
+}
+
+/* ── Monolog-inspired footer texture (marketing surface only) ───────────────
+      A self-contained DITHERED DUNE rising from the footer's bottom edge — no
+      external asset. Two offset dot-fields (a fine + a coarse frequency = the
+      "dithered" read), desaturated to near-monochrome via the foreground token,
+      masked into an organic two-crest wave. STATIC by construction: no
+      animation, honours reduced-motion with nothing to disable. Pair with
+      `.footer-bleed` — a soft violet glow at the crest (the "purple bleed" that
+      lifts the greyscale halftone). */
+.footer-halftone {
+  background-image:
+    radial-gradient(
+      circle at center,
+      color-mix(in oklch, var(--foreground) 34%, transparent) 1px,
+      transparent 1.9px
+    ),
+    radial-gradient(
+      circle at center,
+      color-mix(in oklch, var(--foreground) 20%, transparent) 1.1px,
+      transparent 2px
+    );
+  background-size:
+    8px 8px,
+    13px 13px;
+  background-position:
+    0 0,
+    4px 6px;
+  /* organic dune crest = union (default mask-composite) of two bottom-anchored
+     ellipses at different x — dense at the floor, dissolving upward. */
+  -webkit-mask-image:
+    radial-gradient(125% 82% at 30% 132%, #000 42%, transparent 74%),
+    radial-gradient(120% 74% at 76% 136%, #000 38%, transparent 72%);
+  mask-image:
+    radial-gradient(125% 82% at 30% 132%, #000 42%, transparent 74%),
+    radial-gradient(120% 74% at 76% 136%, #000 38%, transparent 72%);
+}
+.footer-bleed {
+  background:
+    radial-gradient(
+      82% 120% at 32% 128%,
+      color-mix(in oklch, var(--primary) 30%, transparent),
+      transparent 66%
+    ),
+    radial-gradient(
+      64% 108% at 78% 132%,
+      color-mix(in oklch, var(--primary) 16%, transparent),
+      transparent 64%
+    );
+}
+
+/* Giant baseline wordmark — Anton, sized to the viewport so it never overflows;
+   its feet dissolve into the dune via a soft bottom mask (emerging-from-texture).
+   Bottom-left of the footer, paired with the bracketed tagline bottom-right. */
+.footer-wordmark {
+  font-family: var(--font-anton), var(--font-geist-sans), sans-serif;
+  font-size: clamp(3rem, 13vw, 8rem);
+  line-height: 0.8;
+  letter-spacing: -0.015em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  -webkit-mask-image: linear-gradient(to bottom, #000 66%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 66%, transparent 100%);
+}
+
+/* ── Hero cinematic atmosphere (narrative surface only) ─────────────────────
+      A vignette (darkened frame → the headline pops) + a soft violet/gold fog,
+      layered UNDER the existing purple/gold wash. Decorative, static. */
+.hero-vignette {
+  background: radial-gradient(
+    120% 92% at 50% 38%,
+    transparent 54%,
+    color-mix(in oklch, black 44%, transparent) 100%
+  );
+}
+.hero-fog {
+  background:
+    radial-gradient(
+      55% 46% at 18% 92%,
+      color-mix(in oklch, var(--primary) 20%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      40% 40% at 88% 8%,
+      color-mix(in oklch, var(--gold) 12%, transparent),
+      transparent 70%
+    );
+}
+/* Ghosted baseline wordmark low in the hero — Anton, very low opacity, behind
+   all content and clipped by the hero's overflow-hidden. Sized to the viewport;
+   the last glyphs may bleed off-frame (poster crop) without page overflow. */
+.hero-ghost-wordmark {
+  font-family: var(--font-anton), var(--font-geist-sans), sans-serif;
+  font-size: clamp(4.5rem, 22vw, 17rem);
+  line-height: 0.72;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--foreground);
+  opacity: 0.04;
+}
 
 /* ── Reusable surface / text helpers ── */
 @utility glass {

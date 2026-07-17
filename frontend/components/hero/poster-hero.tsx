@@ -20,7 +20,9 @@ export function PosterHero() {
   return (
     <section className="relative isolate overflow-hidden border-b border-border/60">
       {/* ── z-0 · ambient poster texture — the visible purple gradient wash
-             lives HERE (narrative surface only), never on data surfaces ──── */}
+             lives HERE (narrative surface only), never on data surfaces.
+             Deepened for a cinematic read: fog + vignette + a ghosted baseline
+             wordmark, all STATIC and reduced-motion-safe. ──────────────────── */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="poster-vgrid absolute inset-0" />
         {/* purple atmospheric wash across the hero + a gold accent, anchored
@@ -32,7 +34,14 @@ export function PosterHero() {
               "radial-gradient(60% 72% at 80% 30%, color-mix(in oklch, var(--primary) 44%, transparent), transparent 70%), radial-gradient(52% 60% at 94% 98%, color-mix(in oklch, var(--gold) 26%, transparent), transparent 72%), linear-gradient(158deg, color-mix(in oklch, var(--primary) 24%, transparent) 0%, transparent 48%)",
           }}
         />
-        <div className="poster-grain absolute inset-0" />
+        {/* soft violet/gold fog + a frame vignette so the headline pops */}
+        <div className="hero-fog absolute inset-0" />
+        <div className="hero-vignette absolute inset-0" />
+        {/* ghosted giant wordmark, low + very faint, behind all content */}
+        <span className="hero-ghost-wordmark absolute bottom-0 left-0 select-none">
+          AgentForge
+        </span>
+        <div className="poster-grain poster-grain-strong absolute inset-0" />
       </div>
 
       <div className="mx-auto max-w-6xl px-4 pt-16 pb-16 sm:px-6 sm:pt-24">
