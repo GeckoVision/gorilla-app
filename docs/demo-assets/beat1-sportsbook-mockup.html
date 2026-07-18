@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>IRONLINE — generic sportsbook mockup (Beat 1 asset)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /*
+    IRONLINE — a fictional, generic sportsbook. Built as Beat 1's antagonist
+    visual for Gorilla's demo video: cold corporate navy + a harsh lime action
+    color, condensed-sports-broadcast display face, generic corporate Inter
+    for UI chrome, mono for anything that treats you like an account number.
+    Deliberately NOT Gorilla's palette (violet/gold) or type (Anton/Geist/
+    JetBrains Mono) — a different, unrelated brand, on purpose.
+
+    This is a fixed single dark world (a night-mode sportsbook app), not a
+    document — it does not adapt to the viewer's OS theme by design.
+  */
+  :root {
+    --bg: #0b1420;
+    --panel: #121f30;
+    --panel-2: #1a2c42;
+    --line: #223652;
+    --ink: #e8edf2;
+    --ink-dim: #7c8ca0;
+    --ink-faint: #4c5c72;
+    --accent: #c6ff3d;
+    --accent-ink: #16210a;
+    --danger: #ff6b4a;
+    --danger-dim: #3a2420;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #05080d;
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .stage {
+    position: relative;
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--ink);
+    box-shadow: 0 40px 120px rgba(0,0,0,0.6);
+  }
+
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  .cond { font-family: 'Barlow Condensed', sans-serif; }
+
+  /* ── App shell ─────────────────────────────────────────────────────── */
+
+  .app-shell {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    transition: opacity 700ms ease, filter 700ms ease;
+  }
+  .app-shell.dimmed { filter: brightness(0.35) saturate(0.7); }
+  .app-shell.cut { opacity: 0; }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    padding: 0 32px;
+    height: 68px;
+    flex-shrink: 0;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .wordmark {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 26px;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .wordmark .tag {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--accent);
+  }
+
+  .nav-tabs {
+    display: flex;
+    gap: 4px;
+    margin-left: 8px;
+  }
+  .nav-tab {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-dim);
+    padding: 8px 14px;
+    border-radius: 4px;
+  }
+  .nav-tab.active {
+    color: var(--ink);
+    background: var(--panel-2);
+  }
+
+  .balance-chip {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--ink-dim);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 7px 14px;
+  }
+  .balance-chip .amt { color: var(--ink); font-weight: 500; }
+  .avatar-dot {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--ink-faint);
+    display: grid; place-items: center;
+    font-size: 11px; font-weight: 700; color: var(--bg);
+  }
+
+  /* ── Board ─────────────────────────────────────────────────────────── */
+
+  .board-wrap {
+    flex: 1;
+    display: flex;
+    padding: 28px 32px;
+    gap: 24px;
+    position: relative;
+  }
+
+  .board {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .board-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .board-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 21px;
+    letter-spacing: 0.01em;
+  }
+  .board-sub {
+    font-size: 12px;
+    color: var(--ink-faint);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .odds-col-labels {
+    display: grid;
+    grid-template-columns: 1fr 76px 76px 76px;
+    padding: 0 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .odds-col-labels span { text-align: center; }
+  .odds-col-labels span:first-child { text-align: left; }
+
+  .match-row {
+    display: grid;
+    grid-template-columns: 1fr 76px 76px 76px;
+    align-items: center;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 20px;
+    transition: border-color 300ms ease, background 300ms ease, transform 300ms ease;
+  }
+  .match-row.focus {
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+    background: var(--panel-2);
+  }
+
+  .match-teams {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .match-teams .t { font-size: 14px; font-weight: 500; }
+  .match-teams .meta {
+    font-size: 11px;
+    color: var(--ink-faint);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .odd-btn {
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px 0;
+    margin: 0 4px;
+    position: relative;
+  }
+  .odd-btn.selected {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+    font-weight: 700;
+  }
+  .odd-btn.pulse::after {
+    content: '';
+    position: absolute; inset: -3px;
+    border-radius: 8px;
+    border: 2px solid var(--accent);
+    animation: pulseRing 550ms ease-out;
+  }
+  @keyframes pulseRing {
+    from { opacity: 1; transform: scale(1); }
+    to   { opacity: 0; transform: scale(1.28); }
+  }
+
+  /* ── Bet slip drawer ───────────────────────────────────────────────── */
+
+  .betslip {
+    width: 300px;
+    flex-shrink: 0;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px;
+    transform: translateX(340px);
+    opacity: 0;
+    transition: transform 480ms cubic-bezier(.2,.8,.2,1), opacity 300ms ease;
+    align-self: flex-start;
+  }
+  .betslip.in { transform: translateX(0); opacity: 1; }
+
+  .betslip-head {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
+    color: var(--ink-faint); text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .betslip-sel {
+    background: var(--panel-2);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+  }
+  .betslip-sel .team { font-size: 14px; font-weight: 600; }
+  .betslip-sel .line { font-size: 12px; color: var(--ink-dim); margin-top: 3px; font-family: 'IBM Plex Mono', monospace; }
+
+  .betslip-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; color: var(--ink-dim);
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .betslip-row .val {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .betslip-row.payout .val { color: var(--accent); font-weight: 700; font-size: 16px; }
+
+  .place-bet-btn {
+    margin-top: 16px;
+    width: 100%;
+    padding: 13px 0;
+    text-align: center;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    border-radius: 7px;
+    transition: transform 120ms ease, box-shadow 120ms ease;
+  }
+  .place-bet-btn.press {
+    transform: scale(0.96);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent);
+  }
+
+  /* ── Toast ─────────────────────────────────────────────────────────── */
+
+  .toast {
+    position: absolute;
+    top: 84px; left: 50%;
+    background: var(--panel-2);
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+    border-radius: 8px;
+    padding: 11px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex; align-items: center; gap: 8px;
+    opacity: 0;
+    transform: translate(-50%, -8px);
+    transition: opacity 260ms ease, transform 260ms ease;
+    z-index: 5;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast .check {
+    color: var(--accent);
+    font-weight: 900;
+  }
+
+  /* ── Full-time card ────────────────────────────────────────────────── */
+
+  .fulltime {
+    position: absolute;
+    inset: 0;
+    display: grid; place-items: center;
+    background: rgba(5,8,13,0.72);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 380ms ease;
+    z-index: 6;
+  }
+  .fulltime.show { opacity: 1; }
+  .fulltime-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 32px 44px;
+    text-align: center;
+  }
+  .fulltime-card .stamp {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.16em;
+    color: var(--ink-faint); text-transform: uppercase; margin-bottom: 10px;
+  }
+  .fulltime-card .score {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 40px;
+    letter-spacing: 0.01em;
+  }
+  .fulltime-card .won {
+    margin-top: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  /* ── Restricted screen ─────────────────────────────────────────────── */
+
+  .restricted {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    opacity: 0;
+    transition: opacity 550ms ease;
+    text-align: center;
+    padding: 40px;
+  }
+  .restricted.show { opacity: 1; }
+
+  .restricted::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(60% 50% at 50% 32%, color-mix(in srgb, var(--danger) 14%, transparent), transparent 70%);
+    pointer-events: none;
+  }
+
+  .restricted-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--danger-dim);
+    border: 1px solid color-mix(in srgb, var(--danger) 55%, var(--line));
+    display: grid; place-items: center;
+    margin-bottom: 22px;
+  }
+  .restricted-icon svg { width: 26px; height: 26px; }
+
+  .restricted h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 40px;
+    letter-spacing: 0.005em;
+    margin: 0 0 14px;
+    text-wrap: balance;
+  }
+  .restricted p {
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink-dim);
+    max-width: 460px;
+    margin: 0 0 26px;
+  }
+
+  .restricted-meta {
+    display: flex;
+    gap: 22px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-bottom: 26px;
+  }
+  .restricted-meta b { color: var(--ink-dim); font-weight: 500; }
+
+  .withdraw-btn {
+    padding: 12px 28px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    color: var(--ink-faint);
+    font-weight: 600;
+    font-size: 13px;
+    border-radius: 7px;
+    cursor: not-allowed;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <div class="app-shell" id="appShell">
+    <div class="topbar">
+      <div class="wordmark">IRONLINE <span class="tag">SPORTS</span></div>
+      <div class="nav-tabs">
+        <div class="nav-tab active">Football</div>
+        <div class="nav-tab">Basketball</div>
+        <div class="nav-tab">Tennis</div>
+        <div class="nav-tab">Esports</div>
+      </div>
+      <div class="balance-chip">
+        <span>Balance</span>
+        <span class="amt">$482.10</span>
+        <span class="avatar-dot">A</span>
+      </div>
+    </div>
+
+    <div class="board-wrap">
+      <div class="board">
+        <div class="board-header">
+          <div class="board-title">Today · Full-Time Result</div>
+          <div class="board-sub">3 markets live</div>
+        </div>
+        <div class="odds-col-labels">
+          <span></span><span>1</span><span>X</span><span>2</span>
+        </div>
+
+        <div class="match-row" id="row1">
+          <div class="match-teams">
+            <div class="t">Meridian United vs Ironclad FC</div>
+            <div class="meta">KICK-OFF 20:00 · GROUP STAGE</div>
+          </div>
+          <div class="odd-btn" id="odd1">1.85</div>
+          <div class="odd-btn">3.40</div>
+          <div class="odd-btn">4.20</div>
+        </div>
+
+        <div class="match-row">
+          <div class="match-teams">
+            <div class="t">Northgate vs Vantage City</div>
+            <div class="meta">KICK-OFF 20:30 · GROUP STAGE</div>
+          </div>
+          <div class="odd-btn">2.10</div>
+          <div class="odd-btn">3.10</div>
+          <div class="odd-btn">3.30</div>
+        </div>
+
+        <div class="match-row">
+          <div class="match-teams">
+            <div class="t">Solaris FC vs Harbor Rangers</div>
+            <div class="meta">KICK-OFF 21:00 · GROUP STAGE</div>
+          </div>
+          <div class="odd-btn">1.95</div>
+          <div class="odd-btn">3.25</div>
+          <div class="odd-btn">3.75</div>
+        </div>
+      </div>
+
+      <div class="betslip" id="betslip">
+        <div class="betslip-head"><span>Bet Slip</span><span>1</span></div>
+        <div class="betslip-sel">
+          <div class="team">Meridian United — to win</div>
+          <div class="line">Full-Time Result · @ 1.85</div>
+        </div>
+        <div class="betslip-row"><span>Stake</span><span class="val mono" id="stakeVal">$0.00</span></div>
+        <div class="betslip-row payout"><span>Potential payout</span><span class="val" id="payoutVal">$0.00</span></div>
+        <div class="place-bet-btn" id="placeBetBtn">PLACE BET</div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"><span class="check">✓</span> Bet placed — Meridian United @ 1.85</div>
+  </div>
+
+  <!-- Sibling of app-shell on purpose: app-shell's .dimmed filter must not wash this out too. -->
+  <div class="fulltime" id="fulltime">
+    <div class="fulltime-card">
+      <div class="stamp">Full Time</div>
+      <div class="score">Meridian United 2 – 1 Ironclad FC</div>
+      <div class="won">YOU WON $92.50</div>
+    </div>
+  </div>
+
+  <div class="restricted" id="restricted">
+    <div class="restricted-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ff6b4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/>
+      </svg>
+    </div>
+    <h1>Account under review</h1>
+    <p>Your recent activity is being reviewed for compliance. Withdrawals are paused until this review is complete.</p>
+    <div class="restricted-meta">
+      <span>ACCOUNT <b>#IL-449281</b></span>
+      <span>REVIEW OPENED <b id="reviewClock">00:00:07</b></span>
+    </div>
+    <div class="withdraw-btn">Withdraw funds</div>
+  </div>
+
+</div>
+
+<script>
+  // Self-driving timeline, mirrors the "load and it plays itself" pattern
+  // used elsewhere in the demo — open the page, start recording, it loops.
+  const row1 = document.getElementById('row1');
+  const odd1 = document.getElementById('odd1');
+  const betslip = document.getElementById('betslip');
+  const stakeVal = document.getElementById('stakeVal');
+  const payoutVal = document.getElementById('payoutVal');
+  const placeBetBtn = document.getElementById('placeBetBtn');
+  const toast = document.getElementById('toast');
+  const fulltime = document.getElementById('fulltime');
+  const appShell = document.getElementById('appShell');
+  const restricted = document.getElementById('restricted');
+
+  function countUp(el, to, ms, prefix) {
+    const start = performance.now();
+    function tick(now) {
+      const t = Math.min(1, (now - start) / ms);
+      const v = Math.round(to * t * 100) / 100;
+      el.textContent = prefix + v.toFixed(2);
+      if (t < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function reset() {
+    row1.classList.remove('focus');
+    odd1.classList.remove('selected', 'pulse');
+    betslip.classList.remove('in');
+    stakeVal.textContent = '$0.00';
+    payoutVal.textContent = '$0.00';
+    placeBetBtn.classList.remove('press');
+    toast.classList.remove('show');
+    fulltime.classList.remove('show');
+    appShell.classList.remove('dimmed', 'cut');
+    restricted.classList.remove('show');
+  }
+
+  function run() {
+    reset();
+    const t = (ms, fn) => setTimeout(fn, ms);
+
+    t(1400, () => { row1.classList.add('focus'); odd1.classList.add('selected', 'pulse'); });
+    t(2000, () => betslip.classList.add('in'));
+    t(2300, () => countUp(stakeVal, 50, 500, '$'));
+    t(2900, () => countUp(payoutVal, 92.50, 500, '$'));
+    t(3600, () => placeBetBtn.classList.add('press'));
+    t(3760, () => placeBetBtn.classList.remove('press'));
+    t(3850, () => toast.classList.add('show'));
+    t(4700, () => toast.classList.remove('show'));
+    t(4900, () => betslip.classList.remove('in'));
+    t(5500, () => appShell.classList.add('dimmed'));
+    t(5700, () => fulltime.classList.add('show'));
+    t(7900, () => fulltime.classList.remove('show'));
+    t(8100, () => appShell.classList.add('cut'));
+    t(8500, () => restricted.classList.add('show'));
+    t(13000, run); // loop, so any recording window catches a full cycle
+  }
+
+  run();
+</script>
+
+</body>
+</html>
