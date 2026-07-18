@@ -3,7 +3,7 @@
 import { History, TrendingDown, TrendingUp } from "lucide-react";
 
 import {
-  REPLAY,
+  type ReplaySlice,
   formatCaptureDate,
   formatCaptureTime,
   lineLabel,
@@ -23,15 +23,17 @@ function bounds(values: number[]): { min: number; max: number } {
  * The real captured odds series the agent read, revealed reading by reading.
  *
  * Every bar is one real reading from the TxLINE capture — real timestamp, real implied
- * probability. This is a RECORDED replay, and the header says so.
+ * probability — read from MongoDB by `/api/data/replay` and NOT downsampled, so the window
+ * stays the contiguous run of readings the claim above describes. This is a RECORDED replay,
+ * and the header says so.
  */
-export function OddsFeed({ revealed }: { revealed: number }) {
-  const { series, line, provenance, fixture, detector } = REPLAY;
-  const flaggedAt = moveIndex();
+export function OddsFeed({ revealed, slice }: { revealed: number; slice: ReplaySlice }) {
+  const { series, line, provenance, fixture, detector } = slice;
+  const flaggedAt = moveIndex(slice);
   const shown = Math.min(revealed, series.length);
   const current = series[Math.max(shown - 1, 0)];
   const flagged = flaggedAt >= 0 && shown > flaggedAt;
-  const move = REPLAY.moves[0];
+  const move = slice.moves[0];
   const { min, max } = bounds(series.map((r) => r.pct));
 
   return (
@@ -48,7 +50,7 @@ export function OddsFeed({ revealed }: { revealed: number }) {
 
       <p className="text-xs leading-relaxed text-muted-foreground">
         {fixture.competition} · {fixture.participant1} v {fixture.participant2} ·{" "}
-        <span className="font-mono">{lineLabel()}</span> · {line.outcome} ·{" "}
+        <span className="font-mono">{lineLabel(slice)}</span> · {line.outcome} ·{" "}
         {line.bookmaker}
         <br />
         Captured {formatCaptureDate(provenance.captureFromMs)}; readings{" "}
@@ -87,7 +89,7 @@ export function OddsFeed({ revealed }: { revealed: number }) {
       <div className="flex items-baseline justify-between gap-3">
         <div className="flex flex-col">
           <span className="text-xs text-muted-foreground">
-            Implied P({line.outcome}) · {lineLabel()}
+            Implied P({line.outcome}) · {lineLabel(slice)}
           </span>
           <span className="tabular text-3xl font-semibold tracking-tight">
             {current.pct.toFixed(2)}

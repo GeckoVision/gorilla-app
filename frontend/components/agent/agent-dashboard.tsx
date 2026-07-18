@@ -21,9 +21,10 @@ import { OddsFeed } from "@/components/agent/odds-feed";
 import { PolicyPanel } from "@/components/agent/policy-panel";
 import { predicateLabel } from "@/components/settlement/market-summary";
 import { useAgentBets, type AgentBet } from "@/hooks/use-agent-bet";
+import { useReplay } from "@/hooks/use-replay";
 import { POLICY } from "@/lib/agent/policy";
 import {
-  REPLAY,
+  type ReplaySlice,
   formatCaptureTime,
   lineLabel,
   moveIndex,
@@ -156,8 +157,8 @@ function BetRow({ bet }: { bet: AgentBet }) {
 }
 
 /** The on-chain outcome — read live, or an honest note about why it isn't showing. */
-function OnChainResult() {
-  const { bets, loading, unavailable } = useAgentBets(REPLAY.fixture.id);
+function OnChainResult({ fixtureId }: { fixtureId: number }) {
+  const { bets, loading, unavailable } = useAgentBets(fixtureId);
 
   if (loading) {
     return (
@@ -172,7 +173,7 @@ function OnChainResult() {
     return (
       <div className="rounded-xl border border-border/70 bg-background/40 p-4">
         <p className="text-sm text-muted-foreground">
-          No on-chain market for fixture {REPLAY.fixture.id} could be read from
+          No on-chain market for fixture {fixtureId} could be read from
           devnet right now — the public RPC may be rate-limiting the program
           scan. Nothing is shown rather than a stale or invented figure.
         </p>
@@ -183,7 +184,7 @@ function OnChainResult() {
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-primary/25 bg-primary/5 p-4">
       <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-        On-chain stakes · Solana devnet · fixture {REPLAY.fixture.id}
+        On-chain stakes · Solana devnet · fixture {fixtureId}
       </span>
       {bets.map((bet) => (
         <BetRow key={bet.market.address} bet={bet} />
@@ -202,19 +203,25 @@ function OnChainResult() {
   );
 }
 
-export function AgentDashboard() {
+/**
+ * The recorded replay, once its odds have been read from MongoDB.
+ *
+ * Split out from {@link AgentDashboard} so the run/reveal timers are only ever created against
+ * a real series — a shell that ticks through an empty array would render a chart of nothing.
+ */
+function ReplayDashboard({ slice }: { slice: ReplaySlice }) {
   const [phase, setPhase] = useState<Phase>(0);
   const [revealed, setRevealed] = useState(0);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  const { series, line, detector, fixture } = REPLAY;
-  const move = REPLAY.moves[0];
-  const flaggedAt = moveIndex();
+  const { series, line, detector, fixture } = slice;
+  const move = slice.moves[0];
+  const flaggedAt = moveIndex(slice);
 
   const steps = [
     {
       title: "Replay the real book",
-      detail: `${series.length} real readings of ${lineLabel()} · ${line.outcome} · ${line.bookmaker}, from ${line.readingsOnLine} captured on this line.`,
+      detail: `${series.length} real readings of ${lineLabel(slice)} · ${line.outcome} · ${line.bookmaker}, from ${line.readingsOnLine} captured on this line.`,
       reachedAt: 1 as const,
     },
     {
@@ -304,7 +311,7 @@ export function AgentDashboard() {
             </Button>
           </div>
 
-          <OddsFeed revealed={revealed} />
+          <OddsFeed revealed={revealed} slice={slice} />
 
           <Separator />
 
@@ -328,7 +335,7 @@ export function AgentDashboard() {
             })}
           </div>
 
-          {phase >= 4 && <OnChainResult />}
+          {phase >= 4 && <OnChainResult fixtureId={fixture.id} />}
         </CardContent>
       </Card>
 
@@ -339,4 +346,55 @@ export function AgentDashboard() {
       </Card>
     </div>
   );
+}
+
+/**
+ * Reads the recorded replay from MongoDB via `/api/data/replay`, then renders it.
+ *
+ * If the capture cannot be read, this says so and stops. There is no fallback series: on an
+ * odds chart a placeholder is indistinguishable from a real price, so showing nothing is the
+ * only honest failure.
+ */
+export function AgentDashboard() {
+  const { slice, loading, error } = useReplay();
+
+  if (loading) {
+    return (
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardContent className="flex flex-col gap-4">
+            <Skeleton className="h-9 w-64" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-4 w-48" />
+            <Skeleton className="h-4 w-3/4" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            <PolicyPanel />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error || !slice) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col gap-2">
+          <h2 className="text-sm font-semibold">The recorded capture could not be read</h2>
+          <p className="text-sm text-muted-foreground">
+            {error ?? "The capture database returned nothing for this fixture."}
+          </p>
+          <p className="text-xs text-muted-foreground/70">
+            The odds on this page are read from the captured TxLINE records at request time.
+            When that read fails, nothing is shown — never a placeholder or a stale series,
+            which on a price chart would be indistinguishable from real data.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return <ReplayDashboard slice={slice} />;
 }
