@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ExternalLink, ShieldCheck } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { ExternalLink, ShieldCheck, Unlink } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,6 +14,7 @@ import { MerkleProofViewer } from "@/components/settlement/merkle-proof-viewer";
 import { SettlementActivity } from "@/components/settlement/settlement-activity";
 import { PlaceBetPanel } from "@/components/settlement/place-bet-panel";
 import { useMarkets } from "@/hooks/use-markets";
+import { useLinkedMarket } from "@/hooks/use-linked-market";
 import { useFixtureParticipants } from "@/hooks/use-fixture-participants";
 import { predicateHeadline } from "@/lib/solana/predicate";
 import { formatSol } from "@/lib/format";
@@ -23,6 +25,7 @@ import {
   selectFeatured,
   type MarketTx,
 } from "@/lib/solana/markets";
+import { mergeLinkedMarket, resolveBetMarket } from "@/lib/solana/share";
 import { cn } from "@/lib/utils";
 
 export function SettlementView() {
@@ -41,9 +44,21 @@ export function SettlementView() {
       }),
     [markets, participantsFor],
   );
+  // A shared link (`?market=<address>`) resolves to a real on-chain market, or to the
+  // honest "this link doesn't point to a market" state — never an invented market.
+  const linked = useLinkedMarket(useSearchParams().get("market"));
+  const tabs = useMemo(
+    () => mergeLinkedMarket(featured, linked.market),
+    [featured, linked.market],
+  );
+
   const [picked, setPicked] = useState<string | null>(null);
-  const selected = picked ?? featured[0]?.address ?? null;
-  const openFeatured = featured.find((m) => m.state !== "Settled") ?? null;
+  // The linked market acts as an explicit pick (that's the whole point of the link),
+  // until the visitor picks a tab themselves.
+  const selected =
+    picked ?? linked.market?.address ?? featured[0]?.address ?? null;
+  const explicitPick = picked !== null || linked.market !== null;
+  const anyOpen = tabs.some((m) => m.state !== "Settled");
 
   // Keyed by address so a stale result for a previously-selected market is
   // detectable during render (no synchronous reset inside the effect).
@@ -52,12 +67,12 @@ export function SettlementView() {
     txs: MarketTx[] | null;
   }>({ address: null, txs: null });
 
-  const market = featured.find((m) => m.address === selected) ?? null;
+  const market = tabs.find((m) => m.address === selected) ?? null;
 
-  // The bet panel needs a market that can actually accept a stake. Until the visitor picks
-  // a market themselves we point it at the open one; once they pick, we honour the pick —
+  // The bet panel needs a market that can actually accept a stake. Until the visitor (or
+  // their shared link) picks a market we point it at the open one; a pick is honoured —
   // a settled market's fail-closed refusal is a real thing to show, not a bug to route around.
-  const betMarket = picked ? market : (openFeatured ?? market);
+  const betMarket = resolveBetMarket(tabs, selected, explicitPick);
 
   useEffect(() => {
     if (!selected) return;
@@ -78,9 +93,18 @@ export function SettlementView() {
   return (
     <div className="flex flex-col">
       <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
+        {/* a shared link that doesn't resolve — say so honestly, keep the page working */}
+        {linked.status === "invalid" && (
+          <p className="mb-3 flex items-center gap-2 rounded-lg border border-border/70 bg-secondary/40 p-2.5 text-xs leading-relaxed text-muted-foreground">
+            <Unlink className="size-3.5 shrink-0" />
+            This link doesn&rsquo;t point to a market — here&rsquo;s what&rsquo;s
+            live instead.
+          </p>
+        )}
+
         {/* market selector */}
         <div className="flex flex-wrap items-center gap-2">
-          {featured.map((m) => {
+          {tabs.map((m) => {
             const addr = m.address;
             const active = addr === selected;
             const parts = participantsFor(m.fixtureId);
@@ -130,7 +154,7 @@ export function SettlementView() {
               </button>
             );
           })}
-          {featured.length === 0 && !loading && (
+          {tabs.length === 0 && !loading && (
             <p className="text-sm text-muted-foreground">
               No markets could be read from devnet right now — the public RPC may
               be rate-limiting the program scan.
@@ -187,7 +211,7 @@ export function SettlementView() {
                     , {predicateHeadline(betMarket, participantsFor(betMarket.fixtureId))}.
                   </p>
                 )}
-                {!openFeatured && (
+                {!anyOpen && (
                   <p className="mb-4 rounded-lg bg-secondary/40 p-2.5 text-xs leading-relaxed text-muted-foreground">
                     No open market is live on{" "}
                     <span className="text-foreground">{config.explorerCluster}</span> right

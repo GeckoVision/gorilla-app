@@ -35,7 +35,7 @@ const RATE_LIMIT = () => {
 describe("fetchMarket", () => {
   it("decodes an existing account", async () => {
     const conn = fakeConn({
-      getAccountInfo: async () => ({ data: MARKET_DATA }),
+      getAccountInfo: async () => ({ data: MARKET_DATA, owner: FORGE_PROGRAM_ID }),
     });
     const m = await fetchMarket(MARKET_ADDRESS, "devnet", conn);
     expect(m?.fixtureId).toBe(MARKET_EXPECTED.fixtureId);
@@ -43,6 +43,18 @@ describe("fetchMarket", () => {
 
   it("returns null when the account does not exist", async () => {
     const conn = fakeConn({ getAccountInfo: async () => null });
+    expect(await fetchMarket(MARKET_ADDRESS, "devnet", conn)).toBeNull();
+  });
+
+  it("returns null when the account is NOT owned by the forge program", async () => {
+    // A shared ?market= link can point at any account; market-shaped bytes under a
+    // different owner must never render as a market.
+    const conn = fakeConn({
+      getAccountInfo: async () => ({
+        data: MARKET_DATA,
+        owner: new PublicKey(MARKET_ADDRESS),
+      }),
+    });
     expect(await fetchMarket(MARKET_ADDRESS, "devnet", conn)).toBeNull();
   });
 });
@@ -64,7 +76,7 @@ describe("fetchMarkets", () => {
   it("degrades to the known-real fallback when the scan is rate-limited (no throw)", async () => {
     const conn = fakeConn({
       getProgramAccounts: RATE_LIMIT,
-      getAccountInfo: async () => ({ data: MARKET_DATA }),
+      getAccountInfo: async () => ({ data: MARKET_DATA, owner: FORGE_PROGRAM_ID }),
     });
     const markets = await fetchMarkets("devnet", conn);
     expect(markets.length).toBe(getNetworkConfig("devnet").fallbackMarkets.length);

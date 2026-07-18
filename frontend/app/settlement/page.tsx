@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { SettlementView } from "@/components/settlement/settlement-view";
@@ -33,7 +34,11 @@ export default function SettlementPage() {
           className="mb-8"
         />
       </div>
-      <SettlementView />
+      {/* SettlementView reads the shared-link `?market=` param via useSearchParams,
+          which must sit under a Suspense boundary so the static shell prerenders. */}
+      <Suspense>
+        <SettlementView />
+      </Suspense>
     </div>
   );
 }
