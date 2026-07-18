@@ -30,9 +30,17 @@ export function SettlementView() {
   const { markets, loading } = useMarkets();
   const { lookup: participantsFor } = useFixtureParticipants();
   // The featured markets are whatever the program actually owns on chain (a settled one for
-  // the proof, an open one to stake against), not a hardcoded list — so the page can only
-  // ever show markets that exist.
-  const featured = useMemo(() => selectFeatured(markets, 3), [markets]);
+  // the proof, open ones on distinct matches to stake against), not a hardcoded list — so the
+  // page can only ever show markets that exist. The capture's kickoff times rank the open
+  // matches newest-first; markets on fixtures the capture doesn't know sort last.
+  const featured = useMemo(
+    () =>
+      selectFeatured(markets, 3, (fixtureId) => {
+        const kickoffMs = participantsFor(fixtureId)?.kickoffMs;
+        return kickoffMs != null ? { kickoffMs } : null;
+      }),
+    [markets, participantsFor],
+  );
   const [picked, setPicked] = useState<string | null>(null);
   const selected = picked ?? featured[0]?.address ?? null;
   const openFeatured = featured.find((m) => m.state !== "Settled") ?? null;

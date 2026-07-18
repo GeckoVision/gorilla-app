@@ -23,14 +23,19 @@ export function predicateLabel(market: MarketAccount): string {
   return technicalPredicate(market);
 }
 
-/** Teams as a headline ("France vs England"), or the fixture id when names are unknown. */
+/**
+ * Teams as a headline ("France vs England"). When no team names resolve the market is not a
+ * real capture match — test markets use synthetic ids offset from real ones, so nothing in the
+ * fixtures data can or should ever name them. "Demo market" is the honest label; teams are
+ * never invented.
+ */
 export function fixtureHeadline(
   market: MarketAccount,
   participants: FixtureParticipants | null | undefined,
 ): string {
   return participants
     ? `${participants.participant1} vs ${participants.participant2}`
-    : `Fixture ${market.fixtureId.toString()}`;
+    : `Demo market #${market.fixtureId.toString()}`;
 }
 
 function StakeBar({ market }: { market: MarketAccount }) {
@@ -94,7 +99,7 @@ export function MarketSummary({
           </span>
           {human && (
             <span className="font-mono text-xs text-muted-foreground">
-              {technical} · fixture {market.fixtureId.toString()}
+              {technical} · match #{market.fixtureId.toString()}
             </span>
           )}
         </div>
