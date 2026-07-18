@@ -5,9 +5,9 @@ import { FooterClock } from "@/components/layout/footer-clock";
 /**
  * Monolog-inspired editorial footer. Back to front:
  *   ambient   the violet bleed + greyscale halftone DUNE, rising from the floor
- *   meta row  live clock · back-to-top + status · ©AgentForge (small mono/caps)
+ *   meta row  live clock · back-to-top + status · ©Gorilla (small mono/caps)
  *   facts     the real on-chain facts (forge_markets id + TxLINE verification)
- *   baseline  a giant AGENTFORGE wordmark (Anton) + a bracketed tagline
+ *   baseline  a giant GORILLA wordmark (Anton) + a bracketed tagline
  * Everything decorative is STATIC (reduced-motion-safe); only the clock ticks.
  */
 export function SiteFooter() {
@@ -41,7 +41,7 @@ export function SiteFooter() {
           {/* RIGHT — copyright */}
           <div className="flex flex-col gap-1.5 sm:items-end sm:text-right">
             <span className="eyebrow text-muted-foreground">
-              ©2026 AgentForge
+              ©2026 Gorilla
             </span>
             <span className="mono-s text-muted-foreground/60">
               Trustless agent-settled markets
@@ -71,7 +71,7 @@ export function SiteFooter() {
               aria-hidden
               className="footer-wordmark text-gradient block select-none"
             >
-              AgentForge
+              Gorilla
             </span>
             <span className="mono-s shrink-0 text-sm tracking-wide text-muted-foreground lg:pb-3 lg:text-right">
               <span className="text-gold">「</span>

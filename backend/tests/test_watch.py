@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import io
 
-from agentforge.cli import main
-from agentforge.detector import OddsSnapshot, PriceQuote, SharpMove
-from agentforge.watch import (
+from gorilla.cli import main
+from gorilla.detector import OddsSnapshot, PriceQuote, SharpMove
+from gorilla.watch import (
     WatchSummary,
     format_signal,
     live_stream,
@@ -84,18 +84,18 @@ def test_main_recorded_returns_zero_and_prints_header_and_signals():
     code = main(["watch"], out=buf)
     text = buf.getvalue()
     assert code == 0
-    assert "AgentForge" in text
+    assert "Gorilla" in text
     assert "$0 · no key · no network" in text
     assert "SHARP" in text
     assert "sharp move(s) flagged from" in text
 
 
 def test_main_bare_invocation_runs_the_demo_not_watch(capsys):
-    """A bare ``python -m agentforge`` (no subcommand) still runs the offline demo — the original
+    """A bare ``python -m gorilla`` (no subcommand) still runs the offline demo — the original
     behavior is preserved, and ``watch`` is purely additive."""
     assert main([]) == 0
     out = capsys.readouterr().out
-    assert "AgentForge Markets — offline agent core" in out  # the demo banner
+    assert "Gorilla Markets — offline agent core" in out  # the demo banner
     assert "SHARP" not in out  # not the watch stream
 
 

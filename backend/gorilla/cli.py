@@ -1,8 +1,8 @@
-"""``python -m agentforge`` — subcommand dispatch: ``demo`` (default) + ``watch``.
+"""``python -m gorilla`` — subcommand dispatch: ``demo`` (default) + ``watch``.
 
 Thin transport: parse argv, route to the offline ``demo`` smoke or the signal-first ``watch``
 stream. All the logic lives in the package (``agent.demo`` / ``watch``); this only wires the CLI.
-A bare ``python -m agentforge`` still runs the demo — the original behavior — so ``watch`` is
+A bare ``python -m gorilla`` still runs the demo — the original behavior — so ``watch`` is
 purely additive.
 """
 
@@ -19,8 +19,8 @@ from .watch import add_watch_arguments, run_watch_command
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="agentforge",
-        description="AgentForge Markets — the offline agent core and its live signal stream.",
+        prog="gorilla",
+        description="Gorilla Markets — the offline agent core and its live signal stream.",
     )
     sub = parser.add_subparsers(dest="command")
     sub.add_parser(
@@ -34,7 +34,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None, *, out: TextIO = sys.stdout) -> int:
-    """Entry point for ``python -m agentforge [demo|watch] [...]``.
+    """Entry point for ``python -m gorilla [demo|watch] [...]``.
 
     A bare invocation (or ``demo``) runs the offline smoke, preserving the original behavior;
     ``watch`` streams live sharp-money signals ($0 / offline by default). ``out`` is injectable so

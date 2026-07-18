@@ -1,7 +1,7 @@
-"""``agentforge watch`` — stream the odds feed and flag sharp-money line moves live.
+"""``gorilla watch`` — stream the odds feed and flag sharp-money line moves live.
 
-The signal-first view of the AgentForge agent: a *signal* tool. It reads the odds feed tick by
-tick, runs the pure :class:`~agentforge.detector.SharpDetector`, and prints each flagged **sharp
+The signal-first view of the Gorilla agent: a *signal* tool. It reads the odds feed tick by
+tick, runs the pure :class:`~gorilla.detector.SharpDetector`, and prints each flagged **sharp
 move** — a professional-money shift in a line's implied probability — as a live signal line.
 Sharp money moves a betting line early; catching that move before the rest of the market is the
 edge.
@@ -9,11 +9,11 @@ edge.
 By default it runs a **recorded**, deterministic market ($0, no key, no network) so the tool is
 falsifiable offline. ``--live`` polls the real TxLINE feed instead (network + credentials).
 
-The optional ``--act`` flag layers AgentForge's "& agents" angle on top of the signal: for each
+The optional ``--act`` flag layers Gorilla's "& agents" angle on top of the signal: for each
 move it also shows the policy-gated bet a hands-off agent *would* place, sized within a risk
 policy and signed only within a sandbox custody cap — so the agent can act on the edge without
 ever holding keys or exceeding what the user authorized. The signal stays the hero; ``--act`` is
-secondary. It runs over AgentForge's own ``detector`` / ``txline_feed`` / ``decision`` / ``wallet``
+secondary. It runs over Gorilla's own ``detector`` / ``txline_feed`` / ``decision`` / ``wallet``
 — the same offline core the ``demo`` and the on-chain chunk share, just presented as a live stream.
 """
 
@@ -197,7 +197,7 @@ def run_watch(
 def _print_header(out: TextIO, *, threshold: float, act: bool, live: bool) -> None:
     mode = "live TxLINE feed" if live else "recorded market · $0 · no key · no network"
     print(_RULE, file=out)
-    print("  AgentForge · sharp-money line-move detector", file=out)
+    print("  Gorilla · sharp-money line-move detector", file=out)
     print(f"  {mode} · threshold {threshold:g}pp", file=out)
     if act:
         print(

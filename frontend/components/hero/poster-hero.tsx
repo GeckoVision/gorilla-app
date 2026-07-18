@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 
 /**
  * Monolog-style hero — ONE minimal composition, now with restrained MOTION.
- * A giant bottom-anchored AGENTFORGE wordmark (the hero element) under two
+ * A giant bottom-anchored GORILLA wordmark (the hero element) under two
  * short, centered lines of copy, over a dark, moody, grainy atmosphere. No
  * eyebrow, no card, no CTA row, no stats bar — those live in the proof section
  * below.
@@ -112,13 +112,13 @@ export function PosterHero() {
             className="hero-anim-reveal mx-auto mt-5 max-w-md text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
             style={{ animationDelay: "0.2s" }}
           >
-            AgentForge settles it on-chain — the match data pays the winners
+            Gorilla settles it on-chain — the match data pays the winners
             automatically. No bookie, no excuses.
           </p>
         </div>
       </div>
 
-      {/* ── the hero element — giant AGENTFORGE, bottom-anchored, feet bleeding
+      {/* ── the hero element — giant GORILLA, bottom-anchored, feet bleeding
              off the bottom / dissolving into grain. Decorative (the brand is
              already the nav wordmark + the copy's H1); centered, its own
              overflow-hidden keeps any side-bleed from ever widening the page and
@@ -130,7 +130,7 @@ export function PosterHero() {
         className="hero-wordmark-track relative z-10 flex w-full justify-center overflow-hidden"
       >
         <span className="hero-wordmark hero-anim-rise block select-none">
-          AgentForge
+          Gorilla
         </span>
       </div>
     </section>
