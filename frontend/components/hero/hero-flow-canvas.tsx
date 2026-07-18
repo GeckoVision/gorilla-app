@@ -228,12 +228,12 @@ export function HeroFlowCanvas({ className = "" }: { className?: string }) {
     `;
 
     // ── Compile & link ───────────────────────────────────────────────────────
-    function compile(type: number, src: string) {
+    const compile = (type: number, src: string) => {
       const s = gl.createShader(type)!;
       gl.shaderSource(s, src);
       gl.compileShader(s);
       return s;
-    }
+    };
     const vs   = compile(gl.VERTEX_SHADER,   vert);
     const fs   = compile(gl.FRAGMENT_SHADER, frag);
     const prog = gl.createProgram()!;
