@@ -24,6 +24,9 @@ export async function fetchMarket(
 ): Promise<MarketAccount | null> {
   const info = await conn.getAccountInfo(new PublicKey(address));
   if (!info) return null;
+  // Deep links let anyone put ANY address in `?market=`; only an account the forge
+  // program owns can be a Market — market-shaped bytes elsewhere must not render.
+  if (!info.owner.equals(getNetworkConfig(mode).forgeProgramId)) return null;
   return decodeMarket(address, info.data);
 }
 

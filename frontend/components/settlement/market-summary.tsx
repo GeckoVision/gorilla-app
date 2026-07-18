@@ -1,11 +1,14 @@
 "use client";
 
-import { CircleCheck, CircleDot } from "lucide-react";
+import { useEffect, useState } from "react";
+import { CircleCheck, CircleDot, Link2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ExplorerLink } from "@/components/shared/explorer-link";
 import type { ExplorerCluster } from "@/lib/solana/config";
 import { type MarketAccount } from "@/lib/solana/forge-client";
+import { marketShareUrl } from "@/lib/solana/share";
 import {
   describePredicate,
   type FixtureParticipants,
@@ -36,6 +39,48 @@ export function fixtureHeadline(
   return participants
     ? `${participants.participant1} vs ${participants.participant2}`
     : `Demo market #${market.fixtureId.toString()}`;
+}
+
+/**
+ * Copies this market's deep link (`/settlement?market=<address>`) so a bet can be
+ * sent to a group chat — the friend lands on THIS market, not the featured set.
+ */
+function ShareBetButton({ address }: { address: string }) {
+  const [state, setState] = useState<"idle" | "copied" | "failed">("idle");
+
+  useEffect(() => {
+    if (state === "idle") return;
+    const timer = setTimeout(() => setState("idle"), 2000);
+    return () => clearTimeout(timer);
+  }, [state]);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(
+        marketShareUrl(window.location.origin, address),
+      );
+      setState("copied");
+    } catch {
+      // Clipboard can be unavailable (insecure context, permissions) — say so,
+      // don't pretend the link was copied.
+      setState("failed");
+    }
+  }
+
+  return (
+    <Button variant="outline" size="sm" onClick={copy} className="self-start">
+      {state === "copied" ? (
+        <CircleCheck className="text-yes" />
+      ) : (
+        <Link2 />
+      )}
+      {state === "copied"
+        ? "Link copied"
+        : state === "failed"
+          ? "Couldn't copy the link"
+          : "Share this bet"}
+    </Button>
+  );
 }
 
 function StakeBar({ market }: { market: MarketAccount }) {
@@ -166,6 +211,8 @@ export function MarketSummary({
           <dd className="tabular font-mono text-xs">#{market.statKey}</dd>
         </div>
       </dl>
+
+      <ShareBetButton address={market.address} />
     </div>
   );
 }
