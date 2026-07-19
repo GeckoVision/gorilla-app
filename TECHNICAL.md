@@ -43,7 +43,7 @@ Two problems, both solved and proven on devnet:
 ## Run it
 
 ```bash
-cd backend && uv sync && uv run pytest         # 169 tests, offline, $0
+cd backend && uv sync && uv run pytest         # 183 tests, offline, $0 (see docs/TESTING.md)
 uv run python -m gorilla                       # LIVE: real World Cup odds + real detector
 uv run python -m gorilla watch --act           # + a REAL policy-gated devnet stake
 cd ../frontend && pnpm install && pnpm dev     # the UI on devnet

@@ -13,7 +13,12 @@ referenced by the program's embedded on-chain `security.txt`.
 
 - **Program:** `forge_markets`
 - **Program ID (devnet):** `7Pvo6SEh1zBa1Euvj5QQ4td9GpfsQosTpxhqwWtWUFt6`
-- **Source:** https://github.com/GeckoVision/agent-forge
+- **Source:** https://github.com/GeckoVision/gorilla-app
+
+> Note: the currently **deployed** devnet binary embeds a `security.txt` that
+> still points at the repo's pre-rename address (`GeckoVision/agent-forge`) —
+> it was baked in at deploy time and only changes on a redeploy. This document
+> is the authoritative policy.
 
 In scope: the on-chain program (`program/`) and the agent runtime (`backend/`).
 Out of scope: third-party dependencies, the upstream data-provider oracle, and
@@ -24,9 +29,9 @@ any devnet infrastructure we do not control.
 Please report suspected vulnerabilities **privately** first:
 
 1. **Preferred —** open a GitHub Security Advisory:
-   https://github.com/GeckoVision/agent-forge/security
+   https://github.com/GeckoVision/gorilla-app/security
 2. Or open an issue for non-sensitive reports:
-   https://github.com/GeckoVision/agent-forge/issues
+   https://github.com/GeckoVision/gorilla-app/issues
 
 Include: affected instruction or component, a description of the impact, and
 reproduction steps or a proof-of-concept transaction (devnet signatures welcome).

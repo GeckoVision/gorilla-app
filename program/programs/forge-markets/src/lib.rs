@@ -11,7 +11,8 @@
 //! whole guarantee.
 //!
 //! ── Instructions ─────────────────────────────────────────────────────────────
-//!   create_market(fixture_id, stat_key, predicate) — open a two-sided escrow
+//!   create_market(fixture_id, stat_key, predicate, period) — open a two-sided
+//!                                                    escrow bound to one stat period
 //!   stake(side, amount)                            — back YES/NO with SOL
 //!   settle(ts, summary, proofs.., stat_a, ..)      — CPI validate_stat → outcome
 //!   claim()                                        — winning side withdraws pro-rata

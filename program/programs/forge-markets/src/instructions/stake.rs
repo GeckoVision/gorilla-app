@@ -20,6 +20,10 @@ pub struct Stake<'info> {
             &market.stat_key.to_le_bytes(),
         ],
         bump = market.bump,
+        // v1: `Open` is the ONLY gate — there is no time cutoff, so stakes are
+        // accepted until someone settles (even after kickoff / full-time, i.e.
+        // after the outcome is knowable). A `lock_ts` kickoff cutoff is planned,
+        // drawn from the Market `_reserved` tail (no realloc; see state.rs).
         constraint = market.state == MarketState::Open @ SettlementError::MarketNotOpen,
     )]
     pub market: Account<'info, Market>,

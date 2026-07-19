@@ -27,9 +27,9 @@ program/
 
 | Ix | Args | Signer | Notes |
 |---|---|---|---|
-| `create_market` | `fixture_id, stat_key, predicate` | authority | opens the escrow; stores the YES predicate |
+| `create_market` | `fixture_id, stat_key, predicate, period` | authority | opens the escrow; stores the YES predicate + the stat period settle must match |
 | `stake` (= `place_bet`) | `side, amount` | staker | transfers lamports into the vault; records a `Position` |
-| `settle` | `ts, fixture_summary, fixture_proof, main_tree_proof, stat_a, stat_b?, op?` | anyone | CPIs `validate_stat`; `Ok` ⇒ winner=Yes, Settled; `Err` ⇒ revert |
+| `settle` | `ts, fixture_summary, fixture_proof, main_tree_proof, stat_a, stat_b?, op?` | anyone | CPIs `validate_stat`; `Ok(true)` ⇒ winner=Yes, `Ok(false)` ⇒ winner=No (both Settled); `Err` ⇒ revert |
 | `claim` | — | winning staker | pro-rata payout; the vault PDA signs |
 
 PDAs: `Market [b"market", fixture_id, stat_key]`, `Vault [b"vault", market]`,

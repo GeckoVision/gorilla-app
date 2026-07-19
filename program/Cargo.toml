@@ -16,7 +16,9 @@ resolver = "2"
 [workspace.package]
 edition = "2021"
 license = "MIT"
-repository = "https://github.com/GeckoVision/agent-forge"
+# NOTE: the DEPLOYED devnet binary's baked security_txt (lib.rs) still says
+# agent-forge — that string only changes on a redeploy.
+repository = "https://github.com/GeckoVision/gorilla-app"
 
 [profile.release]
 overflow-checks = true
