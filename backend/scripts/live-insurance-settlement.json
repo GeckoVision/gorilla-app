@@ -1,0 +1,15 @@
+{
+ "fixtureId": 17588235,
+ "statKey": 1,
+ "policy": "HDbrqiLMYELiqbhjbaX5vPr5aPFQPdLkLJ48AyWC4pjc",
+ "insured": "5kEHfewU5Nfti15bGWhVJUq8h5hMpLEKSgZneVNUm6ko",
+ "insurer": "3gtfwhBtFKB4k9M7vjcZ9qCAW6HwP4Y2WLJiJbimBbrj",
+ "coverageSol": 0.02,
+ "premiumSol": 0.005,
+ "links": {
+  "open_policy": "https://explorer.solana.com/tx/63EmvEkn4Dq5b6s35N3ZGE98JdnL3JmTBEnsVAMZgGKpBRkVsVKWU9vNLaxunC51MbgrmidGNyCJ1knJSgMzRPT3?cluster=devnet",
+  "bind_policy": "https://explorer.solana.com/tx/HTUsVoJd56sBYoJ7z8wBEakznc5SFMzneGPrcKvxUEPpY71hFE2EUxC89n5uCzQFQkfPRSssXgPjaL91Z2M86Ux?cluster=devnet",
+  "settle_policy": "https://explorer.solana.com/tx/2jwFUAXv8LLqRiTBGoAd4Uk9aqTg5UWofqeeNfe24tv7qxysDdhTsEDoeRPXVRoXGMnnXnMUeJ6RWYb5Dw2Mo17c?cluster=devnet",
+  "claim_policy": "https://explorer.solana.com/tx/4L3Ajc6HVvK1dKP2dxiTyHStrzzyou36ufCASV2MEXMWsTeZB3iPca6JUbbAM3dePnWw9VPbVp6WpUDiEFjtH5C7?cluster=devnet"
+ }
+}

@@ -1,30 +1,34 @@
 import { ArrowDown, ShieldCheck, Trophy, Umbrella } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { explorerTx } from "@/lib/solana/config";
 
 /**
  * "One engine, two products" — the reusability beat (plan 1c in
  * docs/SETTLEMENT-ENGINE-FRONTEND.md). Makes ONE point, legibly to a bettor and
  * a judge: the same trustworthy payout that decides a match bet can decide other
- * things too — proven in tests, not promised.
+ * things too — now proven LIVE on devnet, both settling through the same engine.
  *
- * HONESTY: the engine and the insurance policy are BUILT AND PROVEN IN TESTS but
- * UNDEPLOYED. There is nothing live to link to. The two-product claim is true in
- * the test suite (one run settles a match bet AND an insurance policy) — say
- * exactly that, never "live". See the swap-in seam below for the post-deploy flip.
+ * LIVE: the settlement engine is deployed on devnet and both products settle
+ * through it. Each link below is a real `settle` transaction whose logs show the
+ * SAME engine CPI (forge program → settlement-core `9S6S…` → txoracle). The
+ * match link is a settled market; the insurance link is a settled policy.
  */
 
-// ── SWAP-IN SEAM (post-deploy, one-line flip) ───────────────────────────────
-// The shared engine + the insurance policy are merged and proven in tests, but
-// not yet deployed, so nothing is live to link to yet. Do NOT invent an explorer
-// link here — that would fabricate a deployed thing.
-//
-// After the founder-run deploy: set ENGINE_DEPLOYED = true and fill EXPLORER_LINKS
-// with the real addresses (build them with explorerAddress() from
-// lib/solana/config). That single flip swaps the honest "proven in tests" status
-// for the "live" copy and turns each card's status line into a real link.
-const ENGINE_DEPLOYED = false;
-const EXPLORER_LINKS: { match: string; insurance: string } | null = null; // TODO: fill after deploy
+// ── LIVE SEAM (both links are real on-chain settle transactions) ────────────
+// Both signatures are `settle`/`settle_policy` txs that CPI the deployed engine.
+//   match     — a settled market from backend/scripts/live-engine-settlements.json
+//   insurance — the settled policy from backend/scripts/live-insurance-settlement.json
+// Each tx's on-chain logs show `Program 9S6SwSp5…invoke` (the shared engine).
+const ENGINE_DEPLOYED = true;
+const EXPLORER_LINKS: { match: string; insurance: string } | null = {
+  match: explorerTx(
+    "GprYXh2mzUjHVNAcNbCJhtqVFmWgSxh6XuFr2R3CJgPBDB2AGZ4Wro4C6XpxP4yj4Vu1DgHqrhchg1ZAHBjXoiv",
+  ),
+  insurance: explorerTx(
+    "2jwFUAXv8LLqRiTBGoAd4Uk9aqTg5UWofqeeNfe24tv7qxysDdhTsEDoeRPXVRoXGMnnXnMUeJ6RWYb5Dw2Mo17c",
+  ),
+};
 
 const STATUS = ENGINE_DEPLOYED
   ? "Live on the test network — settling real markets and policies, side by side."
@@ -77,8 +81,8 @@ export function OneEngineSection() {
           The thing that pays out your match bet isn&apos;t built for one game.
           Point it at anything people bet on — even a policy that pays if the
           match gets called off — and it works the same way: same rails, no house,
-          decided by no one. We proved it settling both, side by side, in a single
-          test run.
+          decided by no one. We proved it live on devnet, settling a real market
+          and a real policy through the very same engine.
         </p>
 
         {/* the two products, converging into one engine */}
