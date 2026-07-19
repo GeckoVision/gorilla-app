@@ -45,6 +45,14 @@ FORGE_PROGRAM_ID = Pubkey.from_string("7Pvo6SEh1zBa1Euvj5QQ4td9GpfsQosTpxhqwWtWU
 DEVNET_TXORACLE_ID = "6pW64gN1s2uqjHkn1unFeEjAwJkPGHoppGvS715wyP2J"
 MAINNET_TXORACLE_ID = "9ExbZjAapQww1vfcisDmrngPinHTEfpjYRWMunJgcKaA"
 TXORACLE_PROGRAM_ID = Pubkey.from_string(os.environ.get("GORILLA_TXORACLE_ID", DEVNET_TXORACLE_ID))
+# settlement-core ENGINE program — settle now CPIs its `resolve` (settle.rs pins this by
+# address = settlement_core::ID, so a caller can't redirect the CPI to a look-alike). Single
+# deployment (one declare_id! for devnet + mainnet), unlike the oracle; env-overridable to
+# mirror TXORACLE_PROGRAM_ID and keep a mainnet build a pure-config change.
+SETTLEMENT_ENGINE_ID = "Et7X2jeZY6iNVDjz3jUUydm3ni3vWi8sPB4t59okNdxT"
+SETTLEMENT_ENGINE_PROGRAM_ID = Pubkey.from_string(
+    os.environ.get("GORILLA_SETTLEMENT_ENGINE_ID", SETTLEMENT_ENGINE_ID)
+)
 SYSTEM_PROGRAM_ID = Pubkey.from_string("11111111111111111111111111111111")
 COMPUTE_BUDGET_ID = Pubkey.from_string("ComputeBudget111111111111111111111111111111")
 
@@ -313,8 +321,13 @@ def encode_settle_args(proof: dict[str, Any]) -> bytes:
 
 
 def build_settle_ixs(fixture_id: int, stat_key: int, proof: dict[str, Any]) -> list[Instruction]:
-    """[ComputeBudget prelude, settle]. The settle account order mirrors ``Settle``:
-    market (w), daily_scores_merkle_roots (r), txoracle_program (r)."""
+    """[ComputeBudget prelude, settle]. The settle account order mirrors ``Settle`` after the
+    engine split (settle.rs ``Settle<'info>``, top-to-bottom):
+    market (w), settlement_engine (r), daily_scores_merkle_roots (r), txoracle_program (r).
+
+    ``settlement_engine`` (inserted after ``market``) is what makes settle's ``resolve`` CPI
+    callable; the last two are the engine's own ``Resolve`` accounts, threaded through settle →
+    engine → txoracle. Omitting the engine account = an account-mismatch revert on devnet."""
     market, _ = market_pda(fixture_id, stat_key)
     roots, _, _ = daily_scores_roots_pda(proof["summary"]["updateStats"]["minTimestamp"])
     settle = Instruction(
@@ -322,6 +335,7 @@ def build_settle_ixs(fixture_id: int, stat_key: int, proof: dict[str, Any]) -> l
         encode_settle_args(proof),
         [
             AccountMeta(market, is_signer=False, is_writable=True),
+            AccountMeta(SETTLEMENT_ENGINE_PROGRAM_ID, is_signer=False, is_writable=False),
             AccountMeta(roots, is_signer=False, is_writable=False),
             AccountMeta(TXORACLE_PROGRAM_ID, is_signer=False, is_writable=False),
         ],

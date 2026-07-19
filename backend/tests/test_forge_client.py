@@ -22,6 +22,7 @@ from gorilla.forge_client import (
     DISCRIMINATORS,
     FORGE_PROGRAM_ID,
     MAINNET_TXORACLE_ID,
+    SETTLEMENT_ENGINE_PROGRAM_ID,
     SYSTEM_PROGRAM_ID,
     TXORACLE_PROGRAM_ID,
     Comparison,
@@ -194,10 +195,21 @@ def test_settle_account_order_and_flags():
     market, _ = market_pda(FIXTURE_ID, STAT_KEY)
     root, _, _ = daily_scores_roots_pda(PROOF["summary"]["updateStats"]["minTimestamp"])
     metas = settle.accounts
-    assert [m.pubkey for m in metas] == [market, root, TXORACLE_PROGRAM_ID]
-    # market(w,ns), daily_scores_merkle_roots(r,ns), txoracle_program(r,ns).
+    # New engine-consumer shape (settle.rs Settle<'info>, top-to-bottom):
+    #   market → settlement_engine → daily_scores_merkle_roots → txoracle_program.
+    # The settlement_engine account (inserted after market) makes the resolve CPI
+    # callable; the last two are the engine's Resolve accounts, threaded through.
+    assert [m.pubkey for m in metas] == [
+        market,
+        SETTLEMENT_ENGINE_PROGRAM_ID,
+        root,
+        TXORACLE_PROGRAM_ID,
+    ]
+    # market(w,ns), settlement_engine(r,ns), daily_scores_merkle_roots(r,ns),
+    # txoracle_program(r,ns). Only market is writable; nothing signs.
     assert [(m.is_signer, m.is_writable) for m in metas] == [
         (False, True),
+        (False, False),
         (False, False),
         (False, False),
     ]
@@ -366,6 +378,13 @@ def test_txoracle_id_defaults_to_devnet():
     and the Mollusk-tested program id are unchanged."""
     assert str(TXORACLE_PROGRAM_ID) == DEVNET_TXORACLE_ID
     assert MAINNET_TXORACLE_ID == "9ExbZjAapQww1vfcisDmrngPinHTEfpjYRWMunJgcKaA"
+
+
+def test_settlement_engine_id_pins_the_deployed_engine():
+    """settle CPIs settlement-core, pinned on-chain by address = settlement_core::ID. Pin the
+    off-chain constant to that same deployed engine id so a wrong/typo'd address is caught here,
+    not by an account-mismatch revert on devnet."""
+    assert str(SETTLEMENT_ENGINE_PROGRAM_ID) == "Et7X2jeZY6iNVDjz3jUUydm3ni3vWi8sPB4t59okNdxT"
 
 
 def test_txoracle_id_env_override_flips_target_and_root_pda():
