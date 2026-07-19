@@ -4,6 +4,20 @@
 
 **Live app:** https://gorilla-app-opal.vercel.app/ · **Repo:** https://github.com/GeckoVision/gorilla-app
 
+**Deployed on devnet (all live):**
+- settlement-core (the engine): [`9S6SwSp5ShrDV7NLhtUCqttHTgXTPp7PCNuWuSeHjEjT`](https://explorer.solana.com/address/9S6SwSp5ShrDV7NLhtUCqttHTgXTPp7PCNuWuSeHjEjT?cluster=devnet)
+- forge-insurance (2nd consumer): [`F8kKN4syidmfRuy5atqhUuJPVQFM4DYH5xmqQ9pSQ22A`](https://explorer.solana.com/address/F8kKN4syidmfRuy5atqhUuJPVQFM4DYH5xmqQ9pSQ22A?cluster=devnet)
+- forge-markets (the market): [`7Pvo6SEh1zBa1Euvj5QQ4td9GpfsQosTpxhqwWtWUFt6`](https://explorer.solana.com/address/7Pvo6SEh1zBa1Euvj5QQ4td9GpfsQosTpxhqwWtWUFt6?cluster=devnet)
+
+**Proof it's real — one engine, two products, settled live:** a betting market
+and a parametric-insurance policy both settled end-to-end through the *same*
+deployed engine. The insurance settle transaction's on-chain logs show the CPI
+chain `forge-insurance → settlement-core → txoracle`, all success:
+[settle_policy](https://explorer.solana.com/tx/2jwFUAXv8LLqRiTBGoAd4Uk9aqTg5UWofqeeNfe24tv7qxysDdhTsEDoeRPXVRoXGMnnXnMUeJ6RWYb5Dw2Mo17c?cluster=devnet).
+Ten markets and one policy have settled this way (~50 real transactions);
+`backend/scripts/{live-engine-settlements,live-insurance-settlement}.json` list
+the links.
+
 ---
 
 ## What it is
@@ -40,9 +54,12 @@ predicate against a TxLINE proof:
 - **Safety built in** — the four fixture/stat/period/single-stat binding checks
   live *inside* the engine, so a consumer physically cannot settle a
   genuine-but-different result. Fail-closed: a faked proof pays nobody.
-- **Reuse, proven** — a betting market and a parametric-insurance policy both
-  settle through the same engine. **18/18 Mollusk tests**, including a
-  tampered-proof revert on *each* consumer.
+- **Reuse, proven — and live** — a betting market and a parametric-insurance
+  policy both settle through the same engine, on devnet (links above), and in
+  **18/18 Mollusk tests** including a tampered-proof revert on *each* consumer.
+  Deploying the engine also enforced a binding the previously-deployed binary
+  lacked: a settle carrying a proof for a *different* fixture is now rejected
+  on-chain (`FixtureMismatch`).
 - **Permissionless** — `settle` has no signer gate; the winner settles
   themselves. No trusted keeper.
 
