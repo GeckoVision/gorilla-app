@@ -63,6 +63,17 @@ export function SiteFooter() {
             <span className="text-muted-foreground/60">
               Verified by TxLINE on Solana · Devnet
             </span>
+            <span aria-hidden className="text-muted-foreground/30">
+              ·
+            </span>
+            {/* Dev-only entry to the settlement-engine showcase — deliberately not
+                in the bettor nav/hero; only a builder reading the facts strip finds it. */}
+            <a
+              href="/build"
+              className="text-muted-foreground/60 underline decoration-border underline-offset-4 transition-colors hover:text-foreground"
+            >
+              Build on the engine →
+            </a>
           </div>
 
           {/* baseline row — giant wordmark (left) + bracketed tagline (right) */}
