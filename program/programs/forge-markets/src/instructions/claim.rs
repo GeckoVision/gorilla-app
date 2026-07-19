@@ -33,6 +33,11 @@ pub struct Claim<'info> {
             staker.key().as_ref(),
         ],
         bump = position.bump,
+        // Belt-and-braces: the Position PDA seeds already bind `staker`, so a
+        // signer can only ever reach their OWN position — this owner check is
+        // redundant on purpose (defense in depth over seed derivation). The
+        // `NotWinningSide` error name predates the constraint; a mismatch here
+        // is really "not your position".
         constraint = position.owner == staker.key() @ SettlementError::NotWinningSide,
     )]
     pub position: Account<'info, Position>,
@@ -64,6 +69,9 @@ pub fn claim_handler(ctx: Context<Claim>) -> Result<()> {
         Side::Yes => market.stake_yes,
         Side::No => market.stake_no,
     };
+    // Honest v1 limit: if the market settled with an EMPTY winning side, this
+    // gate makes every claim fail and the pot stays stranded in the vault —
+    // there is no reclaim instruction yet for the losing stakers (planned).
     require!(winner_total > 0, SettlementError::NoWinningStake);
 
     let pot = (market.stake_yes as u128)

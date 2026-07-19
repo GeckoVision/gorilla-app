@@ -21,6 +21,9 @@ pub enum SettlementError {
     #[msg("Position payout already claimed")]
     AlreadyClaimed,
 
+    // If the winning side has zero stake, every claim fails with this error and
+    // the pot is STRANDED in the vault — v1 has no reclaim/refund instruction
+    // for the losing side (one is spec'd; see claim.rs).
     #[msg("The winning side has zero total stake — nothing to claim")]
     NoWinningStake,
 

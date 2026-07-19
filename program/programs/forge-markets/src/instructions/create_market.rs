@@ -1,7 +1,8 @@
-//! `create_market(fixture_id, stat_key, predicate)` — open a two-sided escrow
-//! over one fixture stat. Stores the YES predicate that txoracle will later
-//! evaluate; derives + records the SOL vault PDA (funded lazily by the first
-//! stake).
+//! `create_market(fixture_id, stat_key, predicate, period)` — open a two-sided
+//! escrow over one fixture stat. Stores the YES predicate that txoracle will
+//! later evaluate and the stat `period` the settle proof must match (the F1
+//! binding — see settle.rs); derives + records the SOL vault PDA (funded lazily
+//! by the first stake).
 
 use anchor_lang::prelude::*;
 

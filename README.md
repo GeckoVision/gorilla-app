@@ -99,6 +99,8 @@ the Pattern-B falsifiable simulation — and is labelled as synthetic wherever i
 
 Live devnet demos: `uv run python scripts/e2e_settlement.py` (local signer) and `scripts/e2e_settlement_privy.py` (enclave custody) — see `backend/README` for the RPC + funding setup.
 
+**How to test the transactions** — three rings (program logic → byte-pinned clients → live devnet), each with exact commands: [`docs/TESTING.md`](docs/TESTING.md) (`./scripts/test-rings.sh` runs the offline rings). A transaction-by-transaction walkthrough of a real settled market: [`docs/SETTLEMENT.md`](docs/SETTLEMENT.md).
+
 ## Tech
 
 Solana (Anchor 1.0) · Python agent runtime · Privy TEE custody · TxODDS / **TxLINE** verifiable real-time sports data · Merkle-proof settlement via CPI.
